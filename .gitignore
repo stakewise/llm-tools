@@ -1,6 +1,8 @@
+old
 .env
 .idea
 .claude
 .vscode
 .DS_Store
 node_modules
+promt.txt
