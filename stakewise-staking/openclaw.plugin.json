@@ -1,0 +1,19 @@
+{
+  "id": "stakewise-staking",
+  "name": "Stakewise Staking",
+  "description": "Starts a local Stakewise mock API server and ships a skill for balance lookup",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "port": {
+        "type": "number",
+        "default": 5005
+      },
+      "host": {
+        "type": "string",
+        "default": "127.0.0.1"
+      }
+    },
+    "additionalProperties": false
+  }
+}
