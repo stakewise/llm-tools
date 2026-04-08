@@ -1,9 +1,16 @@
+import QRCode from 'qrcode'
 import http, { ServerResponse } from 'node:http'
+import { SignClient } from '@walletconnect/sign-client'
 import { StakeWiseSDK, Network } from '@stakewise/v3-sdk'
 import { definePluginEntry } from 'openclaw/plugin-sdk/plugin-entry'
 import { getAddress, isAddress, formatEther, parseEther } from 'ethers'
-import type { OpenClawPluginApi } from 'openclaw/plugin-sdk/plugin-entry'
 
+import type { OpenClawPluginApi } from 'openclaw/plugin-sdk/plugin-entry'
+import type { SessionTypes } from '@walletconnect/types'
+
+
+
+const CONNECT_TIMEOUT_MS = 5 * 60 * 1000
 
 type RuntimeState = {
   server?: http.Server
@@ -11,6 +18,10 @@ type RuntimeState = {
   host: string
   port: number
   address?: string
+  signClient?: InstanceType<typeof SignClient>
+  session?: SessionTypes.Struct
+  connectPending?: boolean
+  connectTimer?: ReturnType<typeof setTimeout>
 }
 
 const state: RuntimeState = {
@@ -44,6 +55,108 @@ function createServer() {
 
     if (req.method === 'GET' && url.pathname === '/health') {
       response({ port: state.port })
+
+      return
+    }
+
+    if (req.method === 'GET' && url.pathname === '/connect') {
+      if (state.connectPending) {
+        response({
+          code: 409,
+          error: 'A connection request is already pending. Check /connect-status or wait for it to expire.',
+        })
+        return
+      }
+
+      try {
+        if (!state.signClient) {
+          state.signClient = await SignClient.init({
+            projectId: 'f8110120a5a7b0ac720b64660b48cab7',
+            metadata: {
+              url: 'https://stakewise.io',
+              name: 'StakeWise Staking Plugin',
+              description: 'Stake ETH through StakeWise protocol',
+              icons: ['https://stakewise.io/logo512.png'],
+            },
+          })
+        }
+
+        const { uri, approval } = await state.signClient.connect({
+          optionalNamespaces: {
+            eip155: {
+              methods: ['eth_sendTransaction', 'personal_sign'],
+              events: ['accountsChanged', 'chainChanged'],
+              chains: ['eip155:1'],
+            }
+          },
+        })
+
+        if (!uri) {
+          response({ code: 500, error: 'Failed to generate WalletConnect URI' })
+          return
+        }
+
+        const qrBase64 = await QRCode.toDataURL(uri, { width: 512, margin: 2 })
+
+        state.connectPending = true
+
+        state.connectTimer = setTimeout(() => {
+          state.connectPending = false
+          state.connectTimer = undefined
+        }, CONNECT_TIMEOUT_MS)
+
+        approval().then((session: SessionTypes.Struct) => {
+          clearTimeout(state.connectTimer)
+          state.connectTimer = undefined
+          state.connectPending = false
+          state.session = session
+
+          const account = session.namespaces.eip155?.accounts?.[0]
+          if (account) {
+            const rawAddress = account.split(':')[2]
+            if (isAddress(rawAddress)) {
+              state.address = getAddress(rawAddress)
+            }
+          }
+        }).catch(() => {
+          state.connectPending = false
+          clearTimeout(state.connectTimer)
+          state.connectTimer = undefined
+        })
+
+        response({
+          uri,
+          qrBase64,
+          result: 'Show the QR code image to the user so they can scan it with their wallet app. The image is in qrBase64 field (data URI). Also provide the uri as a clickable link for mobile users.',
+        })
+      } catch (err: any) {
+        state.connectPending = false
+        response({ code: 500, error: err.message || 'WalletConnect initialization failed' })
+      }
+
+      return
+    }
+
+    if (req.method === 'GET' && url.pathname === '/connect-status') {
+      if (state.session && state.address) {
+        response({
+          connected: true,
+          address: state.address,
+          result: `Wallet connected successfully. Address: ${state.address}`,
+        })
+      } else if (state.connectPending) {
+        response({
+          connected: false,
+          pending: true,
+          result: 'Waiting for the user to scan QR code and approve the connection in their wallet.',
+        })
+      } else {
+        response({
+          connected: false,
+          pending: false,
+          result: 'No active connection. Use /connect to start a new connection.',
+        })
+      }
 
       return
     }

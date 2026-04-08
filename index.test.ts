@@ -1,17 +1,32 @@
-import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
 import http from 'node:http'
 
-import pluginEntry from './index.js'
+const mockConnect = vi.fn()
+const mockInit = vi.fn()
 
-type PluginEntry = typeof pluginEntry & {
-  register: (api: any, ctx?: any) => Promise<void>
-}
+vi.mock('@walletconnect/sign-client', () => ({
+  default: {
+    init: (...args: any[]) => mockInit(...args),
+  },
+}))
+
+vi.mock('qrcode', () => ({
+  default: {
+    toDataURL: vi.fn().mockResolvedValue('data:image/png;base64,MOCK_QR_DATA'),
+  },
+}))
 
 vi.mock('openclaw/plugin-sdk/plugin-entry', () => ({
   definePluginEntry(opts: any) {
     return opts
   },
 }))
+
+import pluginEntry from './index.js'
+
+type PluginEntry = typeof pluginEntry & {
+  register: (api: any, ctx?: any) => Promise<void>
+}
 
 const TEST_PORT = 5055
 const TEST_HOST = '127.0.0.1'
@@ -44,13 +59,8 @@ describe('StakeWise Staking Plugin', () => {
   })
 
   afterAll(async () => {
-    // Trigger reset command's stopServer via handler, then stop again
-    const resetCmd = commands.find((c) => c.name === 'stakewise-reset')
+    const resetCmd = commands.find((c) => c.name === 'stakewise_reset')
     if (resetCmd) await resetCmd.handler()
-  })
-
-  afterEach(() => {
-    // keep commands array intact between tests
   })
 
   describe('plugin entry metadata', () => {
@@ -66,9 +76,9 @@ describe('StakeWise Staking Plugin', () => {
   })
 
   describe('command registration', () => {
-    it('should register stakewise-reset command', () => {
+    it('should register stakewise_reset command', () => {
       expect(commands).toHaveLength(1)
-      expect(commands[0].name).toBe('stakewise-reset')
+      expect(commands[0].name).toBe('stakewise_reset')
     })
 
     it('should have a description', () => {
@@ -76,8 +86,8 @@ describe('StakeWise Staking Plugin', () => {
     })
   })
 
-  describe('HTTP server', () => {
-    it('GET /health should return ok', async () => {
+  describe('GET /health', () => {
+    it('should return ok', async () => {
       const { status, body } = await fetch('/health')
 
       expect(status).toBe(200)
@@ -85,25 +95,108 @@ describe('StakeWise Staking Plugin', () => {
       expect(body.plugin).toBe('stakewise-staking')
       expect(body.port).toBe(TEST_PORT)
     })
+  })
 
-    it('GET /get-balance should return mock balance', async () => {
+  // This must run BEFORE /save-address tests so no address is stored yet
+  describe('GET /get-balance (no address saved)', () => {
+    it('should return 400 when no address is saved', async () => {
       const { status, body } = await fetch('/get-balance')
+
+      expect(status).toBe(400)
+      expect(body.ok).toBe(false)
+      expect(body.error).toBeTruthy()
+    })
+  })
+
+  describe('GET /save-address', () => {
+    it('should save a valid address', async () => {
+      const addr = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+      const { status, body } = await fetch(`/save-address?address=${addr}`)
 
       expect(status).toBe(200)
       expect(body.ok).toBe(true)
-      expect(body.result).toContain('Balance')
-      expect(body.result).toContain('ETH')
+      expect(body.result).toContain('successfully saved')
     })
 
-    it('GET /unknown should return 404', async () => {
+    it('should reject an invalid address', async () => {
+      const { status, body } = await fetch('/save-address?address=not-an-address')
+
+      expect(status).toBe(400)
+      expect(body.ok).toBe(false)
+      expect(body.error).toBeTruthy()
+    })
+
+    it('should reject a missing address', async () => {
+      const { status, body } = await fetch('/save-address')
+
+      expect(status).toBe(400)
+      expect(body.ok).toBe(false)
+    })
+  })
+
+  // This must run BEFORE /connect tests so no connection is pending
+  describe('GET /connect-status (no connection)', () => {
+    it('should return not connected when no session exists', async () => {
+      const { status, body } = await fetch('/connect-status')
+
+      expect(status).toBe(200)
+      expect(body.connected).toBe(false)
+      expect(body.pending).toBe(false)
+    })
+  })
+
+  describe('GET /connect', () => {
+    it('should return QR code and URI on successful connect', async () => {
+      const mockUri = 'wc:abc123@2?relay-protocol=irn&symKey=xyz'
+
+      mockInit.mockResolvedValue({
+        connect: mockConnect,
+      })
+      mockConnect.mockResolvedValue({
+        uri: mockUri,
+        approval: () => new Promise(() => {}), // never resolves (pending)
+      })
+
+      const { status, body } = await fetch('/connect')
+
+      expect(status).toBe(200)
+      expect(body.ok).toBe(true)
+      expect(body.uri).toBe(mockUri)
+      expect(body.qrBase64).toContain('data:image/png;base64,')
+      expect(body.result).toBeTruthy()
+    })
+
+    it('should return 409 when a connection is already pending', async () => {
+      const { status, body } = await fetch('/connect')
+
+      expect(status).toBe(409)
+      expect(body.ok).toBe(false)
+      expect(body.error).toContain('already pending')
+    })
+  })
+
+  describe('GET /connect-status (pending)', () => {
+    it('should return pending when waiting for approval', async () => {
+      const { status, body } = await fetch('/connect-status')
+
+      expect(status).toBe(200)
+      expect(body.connected).toBe(false)
+      expect(body.pending).toBe(true)
+    })
+  })
+
+  describe('GET /unknown', () => {
+    it('should return 404', async () => {
       const { status, body } = await fetch('/unknown')
 
       expect(status).toBe(404)
       expect(body.ok).toBe(false)
       expect(body.error).toBe('Not found')
     })
+  })
 
-    it('POST /health should return 404', async () => {
+  describe('POST /health', () => {
+    it('should return 404', async () => {
       const { status, body } = await fetch('/health', 'POST')
 
       expect(status).toBe(404)
@@ -111,16 +204,15 @@ describe('StakeWise Staking Plugin', () => {
     })
   })
 
-  describe('stakewise-reset command', () => {
+  describe('stakewise_reset command', () => {
     it('should return confirmation text', async () => {
-      const resetCmd = commands.find((c) => c.name === 'stakewise-reset')
+      const resetCmd = commands.find((c) => c.name === 'stakewise_reset')
       const result = await resetCmd.handler()
 
       expect(result.text).toContain('restarted')
     })
 
     it('should have a working server after reset', async () => {
-      // Give the server a moment to be fully ready
       await new Promise((r) => setTimeout(r, 50))
 
       const { status, body } = await fetch('/health')
