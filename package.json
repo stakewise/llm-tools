@@ -9,9 +9,11 @@
     "node": ">=20.0.0"
   },
   "scripts": {
+    "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "debug:connect": "npx tsx debug-connect.ts"
+    "debug:connect": "npx tsx debug-connect.ts",
+    "debug:server": "npx tsx debug-server.ts"
   },
   "keywords": [
     "openclaw",
@@ -39,15 +41,18 @@
     "openclaw": "*"
   },
   "devDependencies": {
+    "@eslint/js": "9.39.4",
     "@types/node": "25.0.0",
-    "@types/qrcode": "1.5.6",
+    "eslint": "9.28.0",
+    "eslint-plugin-import": "2.32.0",
+    "eslint-plugin-import-x": "4.16.2",
     "typescript": "6.0.2",
+    "typescript-eslint": "8.58.1",
     "vitest": "3.0.0"
   },
   "dependencies": {
     "@stakewise/v3-sdk": "4.2.4",
-    "@walletconnect/sign-client": "2.23.9",
-    "ethers": "6.16.0",
-    "qrcode": "1.5.4"
+    "dayjs": "1.11.13",
+    "ethers": "6.16.0"
   }
 }
