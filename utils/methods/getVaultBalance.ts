@@ -1,14 +1,14 @@
 import { isAddress } from 'ethers'
 
-import { isValidAddress, getStakeByVault } from './helpers'
+import { isValidUserAddress, getStakeByVault } from './helpers'
 import type { ResponseFn } from '../types'
 import { state } from '../state'
 
 
 const getVaultBalance = async (url: URL, response: ResponseFn) => {
-  const vaultAddress = url.searchParams.get('address') || []
+  const vaultAddress = url.searchParams.get('vaultAddress') || []
 
-  const isValid = isValidAddress(response)
+  const isValid = isValidUserAddress(response)
 
   if (!isValid) {
     return
@@ -32,7 +32,7 @@ const getVaultBalance = async (url: URL, response: ResponseFn) => {
     data: vaultData,
     format: 'markdown',
     result: `
-      # Your statistics in the ${state.address} repository
+      # Your statistics in the ${state.address} vault
       ${getStakeByVault.formatStakeText(vaultAddress, vaultData)}
     `,
   })

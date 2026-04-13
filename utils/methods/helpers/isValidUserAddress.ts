@@ -4,7 +4,7 @@ import { state } from '../../state'
 import { ResponseFn } from '../../types'
 
 
-const isValidAddress = (response: ResponseFn) => {
+const isValidUserAddress = (response: ResponseFn) => {
   if (!isAddress(state.address)) {
     response({
       code: 400,
@@ -21,4 +21,4 @@ const isValidAddress = (response: ResponseFn) => {
 }
 
 
-export default isValidAddress
+export default isValidUserAddress

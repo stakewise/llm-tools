@@ -1,4 +1,5 @@
 import getSDK from './getSDK'
+import formatApy from './formatApy'
 import formatTokenValue from './formatTokenValue'
 
 
@@ -29,7 +30,7 @@ const getStakeByVault = async (values: Input) => {
       mintedShares: osToken.shares,
       rewardsAssets: stake.totalEarnedAssets,
     },
-    userApy: Number(apy.toFixed(2)),
+    userApy: formatApy(apy),
     stakedAssets: formatTokenValue(stake.assets),
     boostedShares: formatTokenValue(boost.shares),
     mintedShares: formatTokenValue(osToken.shares),
@@ -46,26 +47,19 @@ getStakeByVault.formatStakeText = (vaultAddress: string, data: Awaited<ReturnTyp
     rewardsAssets,
   } = data
 
-  let text = `
-    - APY: ${userApy}
-    - Stake: ${stakedAssets} ETH
-  `
+  let text = `- APY: **${userApy}** %\n`
+
+  text += `- Stake: **${stakedAssets}** ETH\n`
 
   if (mintedShares) {
-    text += `
-      - Minted: ${mintedShares} osETH
-    `
+    text += `- Minted: **${mintedShares}** osETH\n`
   }
 
   if (boostedShares) {
-    text += `
-      - Boosted: ${boostedShares} osETH
-    `
+    text += `- Boosted: **${boostedShares}** osETH\n`
   }
 
-  text += `
-    - Total rewards: ${rewardsAssets} ETH
-  `
+  text += `- Total rewards: **${rewardsAssets}** ETH\n`
 
   return text
 }

@@ -1,8 +1,9 @@
 import {
-  isValidAddress,
+  formatApy,
   shortenAddress,
   getStakeByVault,
   formatTokenValue,
+  isValidUserAddress,
 } from './helpers'
 import { state } from '../state'
 import type { ResponseFn } from '../types'
@@ -16,22 +17,22 @@ type Vault = {
   maxBoostApy: string
 }
 
-const formatApy = (apy: string, boostApy: string) => {
+const getApyText = (apy: string, boostApy: string) => {
   const data = {
-    apy: Number(Number(apy).toFixed(2)),
-    boostApy: Number(Number(boostApy || '0').toFixed(2)),
+    apy: Number(apy),
+    boostApy: Number(boostApy),
   }
 
   if (data.boostApy <= 0 || data.apy >= data.boostApy) {
-    return `APY: **${data.apy}**`
+    return `APY: **${formatApy(data.apy)}%**`
   }
   else {
-    return `APY: **${data.apy} - ${data.boostApy}**`
+    return `APY: **${formatApy(data.apy)}% - ${formatApy(data.boostApy)}%**`
   }
 }
 
 const getVaultsWithStake = async (_: URL, response: ResponseFn) => {
-  const isValid = isValidAddress(response)
+  const isValid = isValidUserAddress(response)
 
   if (!isValid) {
     return
@@ -63,7 +64,7 @@ const getVaultsWithStake = async (_: URL, response: ResponseFn) => {
     }
   }`
 
-  const responseData = await fetch('https://graphs.stakewise.io/mainnet-a/subgraphs/name/stakewise/prod', {
+  const responseData = await fetch('https://graphs.stakewise.io/mainnet/subgraphs/name/stakewise/prod', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query }),
@@ -116,40 +117,31 @@ const getVaultsWithStake = async (_: URL, response: ResponseFn) => {
     })
 
     vaults += `
-      ## ${displayName || shortenAddress(address)}
-      - TVL: ${formatTokenValue(totalAssets)}
-      - ${formatApy(apy, maxBoostApy)}
+      ## Vault: ${displayName || shortenAddress(address)}
+      - Address: **${address}**
+      - Vault TVL: **${formatTokenValue(totalAssets)}** ETH
+      - Vault ${getApyText(apy, maxBoostApy)}
 
-      ### Your statistics in this vault:
+      Your statistics in this vault:
       ${getStakeByVault.formatStakeText(address, vaultData)}
 
     `
   }
 
-  let result = `
-    # The ${state.address} address interacted with the following vaults
-  `
+  let result = `# The **${shortenAddress(state.address)}** address interacted with the following vaults\n`
 
   if (data.vaults.length > 1) {
-    result += `
-      • Total staked: ${totalStaked} ETH
-    `
+    result += `- Total staked: **${formatTokenValue(totalStaked)}** ETH\n`
 
     if (totalMinted) {
-      result += `
-        • Total minted: ${totalMinted} osETH
-      `
+      result += `- Total minted: **${formatTokenValue(totalMinted)}** osETH\n`
     }
 
     if (totalBossted) {
-      result += `
-        • Total boosted: ${totalBossted} osETH
-      `
+      result += `- Total boosted: **${formatTokenValue(totalBossted)}** osETH\n`
     }
 
-    result += `
-      • Total rewards: ${totalRewards} ETH
-    `
+    result += `- Total rewards: **${formatTokenValue(totalRewards)}** ETH\n`
   }
 
   result += `
@@ -159,7 +151,7 @@ const getVaultsWithStake = async (_: URL, response: ResponseFn) => {
 
   response({
     result,
-    vaultsData,
+    data: vaultsData,
     format: 'markdown',
   })
 }

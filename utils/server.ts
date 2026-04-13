@@ -1,20 +1,53 @@
 import http, { ServerResponse } from 'node:http'
 
+import {
+  saveAddress,
+  getUserStats,
+  getVaultData,
+  getVaultStats,
+  getVaultQueue,
+  getVaultBalance,
+  getCreatedVaults,
+  getVaultsWithStake,
+} from './methods'
 import { state } from './state'
 import type { ResponseInput, ResponseFn } from './types'
-import { saveAddress, getVaultBalance, getVaultsWithStake } from './methods'
 
+
+const serializeBigInts = (input: unknown): unknown => {
+  if (typeof input === 'bigint') {
+    return String(input)
+  }
+
+  if (Array.isArray(input)) {
+    return input.map(serializeBigInts)
+  }
+
+  if (input && typeof input === 'object') {
+    const result: Record<string, unknown> = {}
+
+    for (const [ key, value ] of Object.entries(input)) {
+      result[key] = serializeBigInts(value)
+    }
+
+    return result
+  }
+
+  return input
+}
 
 const createResponse = (res: ServerResponse): ResponseFn => (values: ResponseInput) => {
   const { code = 200, ...params } = values
 
   res.writeHead(code, { 'content-type': 'application/json; charset=utf-8' })
 
-  res.end(JSON.stringify({
+  const payload = serializeBigInts({
     ok: code === 200 ? true : false,
     plugin: 'stakewise-staking',
     ...params,
-  }))
+  })
+
+  res.end(JSON.stringify(payload))
 }
 
 const createServer = () => http.createServer(async (req: any, res: ServerResponse) => {
@@ -31,13 +64,38 @@ const createServer = () => http.createServer(async (req: any, res: ServerRespons
     return
   }
 
+  if (req.method === 'GET' && url.pathname === '/get-vault-data') {
+    await getVaultData(url, response)
+    return
+  }
+
+  if (req.method === 'GET' && url.pathname === '/get-vault-stats') {
+    await getVaultStats(url, response)
+    return
+  }
+
+  if (req.method === 'GET' && url.pathname === '/get-user-stats') {
+    await getUserStats(url, response)
+    return
+  }
+
   if (req.method === 'GET' && url.pathname === '/get-vault-balance') {
     await getVaultBalance(url, response)
     return
   }
 
+  if (req.method === 'GET' && url.pathname === '/get-vault-queue') {
+    await getVaultQueue(url, response)
+    return
+  }
+
   if (req.method === 'GET' && url.pathname === '/get-staked-vaults') {
     await getVaultsWithStake(url, response)
+    return
+  }
+
+  if (req.method === 'GET' && url.pathname === '/get-created-vaults') {
+    await getCreatedVaults(url, response)
     return
   }
 

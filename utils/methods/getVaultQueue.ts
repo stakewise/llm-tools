@@ -1,6 +1,6 @@
 import { isAddress } from 'ethers'
 
-import { date, isValidAddress, getSDK, formatTokenValue } from './helpers'
+import { date, isValidUserAddress, getSDK, formatTokenValue } from './helpers'
 import type { ResponseFn } from '../types'
 import { state } from '../state'
 
@@ -9,9 +9,7 @@ const getQueueTime = (duration: number | null) => {
   let result = ''
 
   if (duration === null) {
-    result += `
-      - Exit time will appear within 24h
-    `
+    result += `- Exit time will appear within 24h`
   }
 
   const estimatedTime = '~24 hours'
@@ -25,24 +23,20 @@ const getQueueTime = (duration: number | null) => {
     const days = `${daysLeft} days`
     const timeLeft = daysLeft > 0 ? days : estimatedTime
 
-    result += `
-      - Estimated time: ${timeLeft}
-    `
+    result += `- Estimated time: ${timeLeft}`
   }
 
   if (duration === 0) {
-    result += `
-      - Estimated time: ${estimatedTime}
-    `
+    result += `- Estimated time: ${estimatedTime}`
   }
 
   return result
 }
 
 const getVaultQueue = async (url: URL, response: ResponseFn) => {
-  const vaultAddress = url.searchParams.get('address') || []
+  const vaultAddress = url.searchParams.get('vaultAddress') || []
 
-  const isValid = isValidAddress(response)
+  const isValid = isValidUserAddress(response)
 
   if (!isValid) {
     return
@@ -101,9 +95,9 @@ const getVaultQueue = async (url: URL, response: ResponseFn) => {
     result += `
 
       ## Unstake queue
-      - Requests count: ${requests.length}
-      - Total: ${formatTokenValue(total)} ETH
-      - Withdrawable: ${formatTokenValue(withdrawable)} ETH
+      - Requests count: **${requests.length}**
+      - Total: **${formatTokenValue(total)}** ETH
+      - Withdrawable: **${formatTokenValue(withdrawable)}** ETH\n
     `
 
     if (total !== withdrawable) {

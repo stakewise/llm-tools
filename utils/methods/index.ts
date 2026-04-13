@@ -1,3 +1,8 @@
 export { default as getVaultsWithStake } from './getVaultsWithStake'
 export { default as getVaultBalance } from './getVaultBalance'
+export { default as getVaultQueue } from './getVaultQueue'
+export { default as getVaultData } from './getVaultData'
+export { default as getVaultStats } from './getVaultStats'
+export { default as getUserStats } from './getUserStats'
+export { default as getCreatedVaults } from './getCreatedVaults'
 export { default as saveAddress } from './saveAddress'
