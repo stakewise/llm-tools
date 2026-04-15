@@ -9,7 +9,7 @@ export default definePluginEntry({
   name: 'Stakewise Staking',
   description: 'Starts a local Stakewise API server and adds a reset command plus skill',
   async register(api: OpenClawPluginApi, ctx?: { config?: { port?: number; host?: string } }) {
-    state.port = ctx?.config?.port || 5005
+    state.port = ctx?.config?.port || 5165
     state.host = ctx?.config?.host || '127.0.0.1'
 
     await ensureServerRunning()
