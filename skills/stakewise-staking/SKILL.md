@@ -175,6 +175,18 @@ The plugin ships with a slash command `/stakewise_reset` that the user can run t
 
 You may suggest the user run `/stakewise_reset`, or invoke it yourself if your environment allows running slash commands. After a reset, the saved address is gone — you'll need to call `/save-address` again before any data endpoint.
 
+## Useful resources to share with the user
+
+When the user asks about specific topics, you can fetch and reference these pages:
+
+- **Where to use osETH in DeFi** — if the user holds osETH and wants to know where to deploy it (lending, liquidity pools, etc.), fetch <https://app.stakewise.io/ecosystem> for an up-to-date list of DeFi integrations and projects that support osETH.
+- **How Boost works** — if the user asks about boosting, what boost APY means, or how to maximize staking rewards, fetch <https://blog.stakewise.io/productUpdate/maximize-your-rewards-with-stakewise-boost> for a detailed explanation.
+- **How osETH works** — if the user wants to understand the osETH token (overcollateralization, minting mechanics, LTV, liquidation):
+  - Part 1: <https://blog.stakewise.io/caseStudy/what-is-oseth-a-deep-dive-into-the-overcollateralized-staked-ether-token-of>
+  - Part 2: <https://blog.stakewise.io/caseStudy/a-deep-dive-into-oseth-the-new-lst-of-stakewise-v3-part-2>
+
+Fetch these pages on demand (via `WebFetch` or equivalent) when the user's question matches the topic. Do not guess the content — read the actual page and summarize or quote relevant parts.
+
 ## Things NOT to do
 
 - Do not call any endpoint other than `/save-address` before you have a valid Ethereum address for the user.

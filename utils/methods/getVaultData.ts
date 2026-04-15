@@ -21,8 +21,9 @@ const getVaultData = async (url: URL, response: ResponseFn) => {
   const vault = await sdk.vault.getVault({ vaultAddress })
 
   const name = vault.displayName || vaultAddress
-  const totalAssets = formatTokenValue(vault.totalAssets)
   const capacity = formatTokenValue(vault.capacity)
+  const totalAssets = formatTokenValue(vault.totalAssets)
+
   const utilization = Number(vault.totalAssets) && Number(vault.capacity)
     ? ((Number(vault.totalAssets) / Number(vault.capacity)) * 100).toFixed(1)
     : null
@@ -50,8 +51,7 @@ const getVaultData = async (url: URL, response: ResponseFn) => {
   if (vault.osTokenConfig) {
     result += `
     ## osETH minting
-    - LTV: **${vault.osTokenConfig.ltvPercent}%**
-    - Liquidation threshold: **${vault.osTokenConfig.liqThresholdPercent}%**
+    - LTV: **${Number(vault.osTokenConfig.ltvPercent) / 1e16}%**
     `
   }
 

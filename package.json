@@ -12,7 +12,6 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "debug:connect": "npx tsx debug-connect.ts",
     "debug:server": "npx tsx debug-server.ts"
   },
   "keywords": [
