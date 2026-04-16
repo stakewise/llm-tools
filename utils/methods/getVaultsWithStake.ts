@@ -1,7 +1,9 @@
 import {
-  formatApy,
   shortenAddress,
+  getBoostApyText,
   getStakeByVault,
+  fetchSubgraph,
+  formatStakeText,
   formatTokenValue,
   isValidUserAddress,
 } from './helpers'
@@ -17,20 +19,6 @@ type Vault = {
   maxBoostApy: string
 }
 
-const getApyText = (apy: string, boostApy: string) => {
-  const data = {
-    apy: Number(apy),
-    boostApy: Number(boostApy),
-  }
-
-  if (data.boostApy <= 0 || data.apy >= data.boostApy) {
-    return `APY: **${formatApy(data.apy)}%**`
-  }
-  else {
-    return `APY: **${formatApy(data.apy)}% - ${formatApy(data.boostApy)}%**`
-  }
-}
-
 const getVaultsWithStake = async (_: URL, response: ResponseFn) => {
   const isValid = isValidUserAddress(response)
 
@@ -38,47 +26,46 @@ const getVaultsWithStake = async (_: URL, response: ResponseFn) => {
     return
   }
 
-  const query = `{
-    vaults(
-      skip: 0
-      first: 1000
-      where: {
-        and: [
-          {
-            or: [
-              { allocators_: { address: "${state.address}" } }
-              { exitRequests_: { owner: "${state.address}" } }
-              { leveragePositions_: { user: "${state.address}" } }
-            ]
-          }
-        ]
+  let data: { vaults: Vault[] }
+
+  try {
+    data = await fetchSubgraph<{ vaults: Vault[] }>(`{
+      vaults(
+        skip: 0
+        first: 1000
+        where: {
+          and: [
+            {
+              or: [
+                { allocators_: { address: "${state.address}" } }
+                { exitRequests_: { owner: "${state.address}" } }
+                { leveragePositions_: { user: "${state.address}" } }
+              ]
+            }
+          ]
+        }
+        orderBy: apy
+        orderDirection: desc
+      ) {
+        apy
+        totalAssets
+        displayName
+        address: id
+        maxBoostApy: allocatorMaxBoostApy
       }
-      orderBy: apy
-      orderDirection: desc
-    ) {
-      apy
-      totalAssets
-      displayName
-      address: id
-      maxBoostApy: allocatorMaxBoostApy
-    }
-  }`
-
-  const responseData = await fetch('https://graphs.stakewise.io/mainnet/subgraphs/name/stakewise/prod', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
-  })
-
-  if (!responseData.ok) {
-    response({ code: 400, error: `Subgraph request failed: ${responseData.status} ${responseData.statusText}` })
+    }`)
+  }
+  catch (err: any) {
+    response({ code: 400, error: err.message })
     return
   }
 
-  const { data } = await responseData.json() as { data: { vaults: Vault[] } }
-
   if (!data.vaults.length) {
-    response({ code: 404, error: 'User has no deposits in vaults' })
+    response({
+      data: [],
+      result: 'User has no deposits in vaults',
+    })
+
     return
   }
 
@@ -120,10 +107,10 @@ const getVaultsWithStake = async (_: URL, response: ResponseFn) => {
       ## Vault: ${displayName || shortenAddress(address)}
       - Address: **${address}**
       - Vault TVL: **${formatTokenValue(totalAssets)}** ETH
-      - Vault ${getApyText(apy, maxBoostApy)}
+      - Vault ${getBoostApyText(apy, maxBoostApy)}
 
       Your statistics in this vault:
-      ${getStakeByVault.formatStakeText(address, vaultData)}
+      ${formatStakeText(vaultData)}
 
     `
   }

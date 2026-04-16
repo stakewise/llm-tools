@@ -1,6 +1,4 @@
-import { isAddress } from 'ethers'
-
-import { date, isValidUserAddress, getSDK, formatTokenValue } from './helpers'
+import { date, isValidUserAddress, isValidVaultAddress, getSDK, formatTokenValue } from './helpers'
 import type { ResponseFn } from '../types'
 import { state } from '../state'
 
@@ -34,20 +32,15 @@ const getQueueTime = (duration: number | null) => {
 }
 
 const getVaultQueue = async (url: URL, response: ResponseFn) => {
-  const vaultAddress = url.searchParams.get('vaultAddress') || []
-
   const isValid = isValidUserAddress(response)
 
   if (!isValid) {
     return
   }
 
-  if (!isAddress(vaultAddress)) {
-    response({
-      code: 400,
-      error: 'The vault address provided is invalid.',
-    })
+  const vaultAddress = isValidVaultAddress(url, response)
 
+  if (!vaultAddress) {
     return
   }
 

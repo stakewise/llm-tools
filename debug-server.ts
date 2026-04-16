@@ -4,7 +4,7 @@ import { ensureServerRunning } from './utils/server'
 import { state } from './utils/state'
 
 
-const PROXY_PORT = 5006
+const ProxyPort = 5006
 
 const formatPayload = (payload: any): string => {
   const lines: string[] = []
@@ -62,19 +62,19 @@ async function main() {
     }
   })
 
-  proxy.listen(PROXY_PORT, state.host, () => {
+  proxy.listen(ProxyPort, state.host, () => {
     console.log(`\n[debug-server] upstream:  http://${state.host}:${state.port}`)
-    console.log(`[debug-server] proxy:     http://${state.host}:${PROXY_PORT}`)
+    console.log(`[debug-server] proxy:     http://${state.host}:${ProxyPort}`)
     console.log('\n[debug-server] available routes (curl the proxy):')
-    console.log(`  curl http://${state.host}:${PROXY_PORT}/health`)
-    console.log(`  curl "http://${state.host}:${PROXY_PORT}/save-address?address=0x..."`)
-    console.log(`  curl "http://${state.host}:${PROXY_PORT}/get-vault-data?vaultAddress=0x..."`)
-    console.log(`  curl "http://${state.host}:${PROXY_PORT}/get-vault-stats?vaultAddress=0x...&days=30"`)
-    console.log(`  curl "http://${state.host}:${PROXY_PORT}/get-user-stats?vaultAddress=0x...&days=30"`)
-    console.log(`  curl "http://${state.host}:${PROXY_PORT}/get-vault-balance?vaultAddress=0x..."`)
-    console.log(`  curl "http://${state.host}:${PROXY_PORT}/get-vault-queue?vaultAddress=0x..."`)
-    console.log(`  curl http://${state.host}:${PROXY_PORT}/get-staked-vaults`)
-    console.log(`  curl http://${state.host}:${PROXY_PORT}/get-created-vaults`)
+    console.log(`  curl http://${state.host}:${ProxyPort}/health`)
+    console.log(`  curl "http://${state.host}:${ProxyPort}/save-address?address=0x..."`)
+    console.log(`  curl "http://${state.host}:${ProxyPort}/get-vault-data?vaultAddress=0x..."`)
+    console.log(`  curl "http://${state.host}:${ProxyPort}/get-vault-stats?vaultAddress=0x...&days=30"`)
+    console.log(`  curl "http://${state.host}:${ProxyPort}/get-user-stats?vaultAddress=0x...&days=30"`)
+    console.log(`  curl "http://${state.host}:${ProxyPort}/get-vault-balance?vaultAddress=0x..."`)
+    console.log(`  curl "http://${state.host}:${ProxyPort}/get-vault-queue?vaultAddress=0x..."`)
+    console.log(`  curl http://${state.host}:${ProxyPort}/get-staked-vaults`)
+    console.log(`  curl http://${state.host}:${ProxyPort}/get-created-vaults`)
     console.log('\nPress Ctrl+C to stop\n')
   })
 }

@@ -1,34 +1,22 @@
-import { isAddress } from 'ethers'
-
 import {
   date,
   getSDK,
   formatApy,
+  parseDays,
+  isValidVaultAddress,
   formatNumberTokenValue,
 } from './helpers'
 import type { ResponseFn } from '../types'
 
 
-const defaultDays = 30
-const maxDays = 365
-
 const getVaultStats = async (url: URL, response: ResponseFn) => {
-  const vaultAddress = url.searchParams.get('vaultAddress') || []
-  const daysParam = url.searchParams.get('days')
+  const vaultAddress = isValidVaultAddress(url, response)
 
-  if (!isAddress(vaultAddress)) {
-    response({
-      code: 400,
-      error: 'The vault address provided is invalid.',
-    })
-
+  if (!vaultAddress) {
     return
   }
 
-  const daysCount = Math.min(
-    Math.max(Number(daysParam) || defaultDays, 1),
-    maxDays
-  )
+  const daysCount = parseDays(url.searchParams.get('days'))
 
   const sdk = getSDK()
 

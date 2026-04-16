@@ -6,6 +6,7 @@ import {
   getVaultData,
   getVaultStats,
   getVaultQueue,
+  getVaultsList,
   getVaultBalance,
   getCreatedVaults,
   getVaultsWithStake,
@@ -99,6 +100,11 @@ const createServer = () => http.createServer(async (req: any, res: ServerRespons
     return
   }
 
+  if (req.method === 'GET' && url.pathname === '/vaults-list') {
+    await getVaultsList(url, response)
+    return
+  }
+
   res.writeHead(404, { 'content-type': 'application/json; charset=utf-8' })
   res.end(JSON.stringify({ ok: false, error: 'Not found' }))
 })
@@ -141,6 +147,7 @@ const ensureServerRunning = async () => {
       if ((err as any).code === 'EADDRINUSE') {
         console.log(`[stakewise-staking] server already running on ${state.host}:${state.port}`)
         resolve()
+
         return
       }
       reject(err)
@@ -150,8 +157,10 @@ const ensureServerRunning = async () => {
 
     server.listen(state.port, state.host, () => {
       server.off('error', onError)
+
       state.server = server
       state.starting = undefined
+
       console.log(`[stakewise-staking] server listening on http://${state.host}:${state.port}`)
       resolve()
     })

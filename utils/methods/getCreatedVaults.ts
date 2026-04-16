@@ -1,6 +1,6 @@
 import { getAddress } from 'ethers'
 
-import { isValidUserAddress } from './helpers'
+import { isValidUserAddress, fetchSubgraph } from './helpers'
 import type { ResponseFn } from '../types'
 import { state } from '../state'
 
@@ -12,35 +12,34 @@ const getCreatedVaults = async (_: URL, response: ResponseFn) => {
     return
   }
 
-  const query = `{
-    vaults(
-      skip: 0
-      first: 1000
-      where: {
-        admin: "${state.address}"
+  let data: { vaults: Array<{ address: string }> }
+
+  try {
+    data = await fetchSubgraph<{ vaults: Array<{ address: string }> }>(`{
+      vaults(
+        skip: 0
+        first: 1000
+        where: {
+          admin: "${state.address}"
+        }
+        orderBy: apy
+        orderDirection: desc
+      ) {
+        address: id
       }
-      orderBy: apy
-      orderDirection: desc
-    ) {
-      address: id
-    }
-  }`
-
-  const responseData = await fetch('https://graphs.stakewise.io/mainnet/subgraphs/name/stakewise/prod', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
-  })
-
-  if (!responseData.ok) {
-    response({ code: 400, error: `Subgraph request failed: ${responseData.status} ${responseData.statusText}` })
+    }`)
+  }
+  catch (err: any) {
+    response({ code: 400, error: err.message })
     return
   }
 
-  const { data } = await responseData.json() as { data: { vaults: Array<{ address: string }> } }
-
   if (!data.vaults.length) {
-    response({ code: 404, error: 'User has no created vaults' })
+    response({
+      data: [],
+      result: 'User has no created vaults',
+    })
+
     return
   }
 

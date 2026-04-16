@@ -1,18 +1,11 @@
-import { isAddress } from 'ethers'
-
 import type { ResponseFn } from '../types'
-import { getSDK, formatTokenValue, formatApy } from './helpers'
+import { getSDK, formatTokenValue, formatApy, isValidVaultAddress } from './helpers'
 
 
 const getVaultData = async (url: URL, response: ResponseFn) => {
-  const vaultAddress = url.searchParams.get('vaultAddress') || []
+  const vaultAddress = isValidVaultAddress(url, response)
 
-  if (!isAddress(vaultAddress)) {
-    response({
-      code: 400,
-      error: 'The vault address provided is invalid.',
-    })
-
+  if (!vaultAddress) {
     return
   }
 

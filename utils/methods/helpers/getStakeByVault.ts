@@ -16,15 +16,28 @@ const getStakeByVault = async (values: Input) => {
     apy,
     osToken,
     stake,
+    { liqThresholdPercent },
+    maxWithdrawAssets,
   ] = await Promise.all([
     sdk.boost.getData(values),
     sdk.vault.getUserApy(values),
     sdk.osToken.getBalance(values),
     sdk.vault.getStakeBalance(values),
+    sdk.vault.getOsTokenConfig(values),
+    sdk.vault.getMaxWithdrawAmount(values),
   ])
+
+  const { health } = await sdk.osToken.getHealthFactor({
+    ...values,
+    stakedAssets: stake.assets,
+    mintedAssets: osToken.assets,
+    liqThresholdPercent: BigInt(liqThresholdPercent),
+  })
 
   return {
     params: {
+      health,
+      maxWithdrawAssets,
       stakedAssets: stake.assets,
       boostedShares: boost.shares,
       mintedShares: osToken.shares,
@@ -36,32 +49,6 @@ const getStakeByVault = async (values: Input) => {
     mintedShares: formatTokenValue(osToken.shares),
     rewardsAssets: formatTokenValue(stake.totalEarnedAssets),
   }
-}
-
-getStakeByVault.formatStakeText = (vaultAddress: string, data: Awaited<ReturnType<typeof getStakeByVault>>) => {
-  const {
-    userApy,
-    stakedAssets,
-    mintedShares,
-    boostedShares,
-    rewardsAssets,
-  } = data
-
-  let text = `- APY: **${userApy}** %\n`
-
-  text += `- Stake: **${stakedAssets}** ETH\n`
-
-  if (mintedShares) {
-    text += `- Minted: **${mintedShares}** osETH\n`
-  }
-
-  if (boostedShares) {
-    text += `- Boosted: **${boostedShares}** osETH\n`
-  }
-
-  text += `- Total rewards: **${rewardsAssets}** ETH\n`
-
-  return text
 }
 
 

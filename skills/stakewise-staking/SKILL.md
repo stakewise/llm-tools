@@ -42,12 +42,13 @@ The user can customize the server's IP and port. If the server is unreachable at
 | GET | `/health` | — | Check the server is running |
 | GET | `/save-address` | `address` | Save the user's wallet address into the server's session state |
 | GET | `/get-staked-vaults` | — | List **every** vault where the saved address has any position (stake, exit request, or leverage) — returns vault names, addresses, APY, TVL, and per-user totals |
-| GET | `/get-vault-data` | `vaultAddress` | Public vault info — name, description, APY, base APY, fee, capacity, utilization, osETH minting config (LTV, liquidation threshold), ERC20 token info. Does **not** require a saved user address |
+| GET | `/get-vault-data` | `vaultAddress` | Public vault info — name, description, APY, base APY, fee, capacity, utilization, osETH minting config (LTV), ERC20 token info. Does **not** require a saved user address |
 | GET | `/get-vault-stats` | `vaultAddress`, `days` (optional, default 30, max 365) | Historical vault performance by day — APY, TVL (balance), and rewards for each day, plus a summary with average APY and total rewards. Does **not** require a saved user address |
 | GET | `/get-user-stats` | `vaultAddress`, `days` (optional, default 30, max 365) | Historical **user** performance in a specific vault — personal APY, balance, and rewards (with breakdown into stake/boost/extra rewards) by day. **Requires** a saved user address |
 | GET | `/get-vault-balance` | `vaultAddress` | Detailed user position (stake, minted osETH, boosted osETH, rewards, user APY) for one specific vault |
 | GET | `/get-vault-queue` | `vaultAddress` | Status of the unstake **and** unboost queues for one specific vault |
 | GET | `/get-created-vaults` | — | List vault addresses created (administered) by the saved user address. Use this to discover vaults the user owns, then call `/get-vault-data` or `/get-vault-stats` for details |
+| GET | `/vaults-list` | — | List **all** StakeWise vaults sorted by APY descending — returns name, address, TVL, and APY range (base + boost) for each vault. Does **not** require a saved user address. Use when the user asks about the best APY, highest TVL, or wants to browse available vaults |
 
 All endpoints return JSON of the shape:
 
@@ -69,9 +70,9 @@ On error:
 
 ## Required workflow: get the address first
 
-**Every data endpoint depends on the server having the user's address saved** (via a previous `/save-address` call in the same server session). The server keeps the address in memory.
+Some endpoints (`/get-vault-data`, `/get-vault-stats`, `/vaults-list`) work without a saved address — they return public vault data. All other data endpoints require the user's address to be saved first (via `/save-address`). The server keeps the address in memory.
 
-Before any data call:
+Before calling a user-specific endpoint:
 
 1. If the user supplied an address in the current message, save it:
    ```bash
@@ -83,6 +84,16 @@ Before any data call:
 If a data endpoint returns an "address not provided" error, fall back to step 1.
 
 ## Common tasks
+
+### "Which vault has the highest APY?" / "Show me all vaults" / "Best TVL?"
+
+Call `/vaults-list` — returns all StakeWise vaults sorted by APY (highest first). Each entry includes the vault name, address, TVL, and APY range (base + boost). Does **not** require a saved user address.
+
+```bash
+curl -sS "http://127.0.0.1:5165/vaults-list"
+```
+
+Use this when the user wants to compare vaults, find the best APY, or browse what's available. Also useful for resolving a vault name to its address (e.g. "what is the address of Genesis Vault?").
 
 ### "Show me my StakeWise / staking balance"
 
@@ -151,37 +162,21 @@ Once you have the addresses, you can call `/get-vault-data`, `/get-vault-stats`,
 ## How to present the results to the user
 
 - The server's `result` field is intended for direct display. When `format: "markdown"` is set (which is the common case), render it as markdown — preserve headings, bullets, and bold.
-- You are **not required** to copy `result` verbatim. You may:
-  - Reformat or shorten it to better fit the user's question
+- You are **not required** to copy `result` verbatim. You may choose how to present the data — use tables, bullet lists, headings, bold, or any other markdown formatting that makes the response easier to read. You may:
+  - Reformat, restructure, or restyle the output to better fit the user's question
   - Add a brief plain-language summary on top (e.g. "You have ~0.002 ETH staked across 2 vaults, currently earning ~3.1% APY")
   - Add helpful context (explain what osETH or boost means, the difference between unstake vs unboost queues, etc.) when the user seems unfamiliar
   - Combine results from multiple endpoints into one coherent answer
+- **You must show ALL data received from the server.** Every value returned is important to the user — do not hide, skip, or omit any fields. You decide **how** to present the data (layout, formatting, grouping), but not **what** to show. All values must be visible in your response.
 - The `data` field contains the raw numeric values (often as strings to preserve precision for big numbers). Use it when the user asks for exact figures, when you need to do arithmetic (totals, comparisons), or to remember values across the conversation.
 - **Never invent numbers.** If a value is missing from the response, say so rather than estimating.
 
-## Setup: exec-approvals
-
-This plugin uses `curl` to communicate with the local HTTP server. For `curl` to be allowed by OpenClaw's execution policy, the user's `~/.openclaw/exec-approvals.json` must have `autoAllowSkills` enabled. This setting automatically allows executables referenced by installed skills (like `curl` in this skill) without manual allowlist configuration.
-
-The relevant part of `~/.openclaw/exec-approvals.json` should look like:
-
-```json
-{
-  "defaults": {
-    "security": "allowlist",
-    "autoAllowSkills": true
-  }
-}
-```
-
-If `curl` commands are being blocked and the user has not configured this, guide them to add `"autoAllowSkills": true` to their `defaults` section. This is the only change needed — it does not disable security, it only auto-allows commands used by installed plugin skills.
-
 ## Error handling and recovery
 
-- **Server unreachable / connection refused** → this may be caused by exec-approvals blocking `curl`. Ask the user to verify that `autoAllowSkills` is enabled in `~/.openclaw/exec-approvals.json` (see "Setup: exec-approvals" below). Also ask whether they changed the server's IP or port from the default (`127.0.0.1:5165`). If they did, remember the new address and retry. If the address is correct and approvals are configured, suggest running `/stakewise_reset` to restart the server.
+- **Server unreachable / connection refused** → Ask whether they changed the server's IP or port from the default (`127.0.0.1:5165`). If they did, remember the new address and retry. If the address is correct, suggest running `/stakewise_reset` to restart the server.
 - **`error: "...address..."`** from any data endpoint → the address is missing or invalid. Save it via `/save-address`, or ask the user for one.
 - **`error: "The vault address provided is invalid."`** → the `vaultAddress` query param was malformed. Re-resolve via `/get-staked-vaults`.
-- **404 "User has no deposits in vaults"** from `/get-staked-vaults` → the address simply has nothing on StakeWise. Tell the user clearly.
+- **Empty result** (`ok: true` with empty `data`) from `/get-staked-vaults`, `/get-created-vaults`, or `/vaults-list` → the address simply has nothing on StakeWise. Tell the user clearly.
 - **Subgraph / upstream errors (5xx, "Subgraph request failed")** → transient. Retry once. If it still fails, suggest `/stakewise_reset`.
 - **Malformed JSON / unexpected response shape** → suggest `/stakewise_reset` and try again.
 
@@ -225,7 +220,7 @@ When the user asks a general question like "what can I do with my osETH?", list 
 
 ## Things NOT to do
 
-- Do not call any endpoint other than `/save-address` before you have a valid Ethereum address for the user.
+- Do not call user-specific endpoints (`/get-staked-vaults`, `/get-vault-balance`, `/get-vault-queue`, `/get-user-stats`, `/get-created-vaults`) before you have a valid Ethereum address saved.
 - Do not guess, fabricate, or "round" balances, APYs, or queue times.
 - Do not assume `/get-staked-vaults` covers vaults with zero balance — it only returns vaults where the address actively has a position.
 - Do not call `/get-vault-balance` or `/get-vault-queue` with a vault name string — these endpoints need a hex address.

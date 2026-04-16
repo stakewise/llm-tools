@@ -4,6 +4,7 @@ import http from 'node:http'
 export type RuntimeState = {
   host: string
   port: number
+  subgraphUrl: string
   address?: string
   server?: http.Server
   starting?: Promise<void>
