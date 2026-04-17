@@ -19,7 +19,7 @@ The plugin runs a local HTTP server and provides a skill file so the model can a
 ### 1. Install the plugin
 
 ```bash
-openclaw plugins install clawhub:stakewise-staking
+openclaw plugins install clawhub:stakewise-llm-tools
 ```
 
 ### 2. Allow the model to reach the local server

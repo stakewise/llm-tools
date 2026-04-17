@@ -5,7 +5,7 @@ import { state, stopServer, ensureServerRunning } from './utils'
 
 
 export default definePluginEntry({
-  id: 'stakewise-staking',
+  id: 'stakewise-llm-tools',
   name: 'Stakewise Staking',
   description: 'Starts a local Stakewise API server and adds a reset command plus skill',
   async register(api: OpenClawPluginApi, ctx?: { config?: { port?: number; host?: string } }) {

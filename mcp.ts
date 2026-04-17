@@ -1,3 +1,4 @@
+#!/usr/bin/env npx tsx
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod/v4'
@@ -66,7 +67,7 @@ const vaultAddressWithDaysSchema = z.object({
 })
 
 const server = new McpServer({
-  name: 'stakewise-staking',
+  name: 'stakewise-llm-tools',
   version: '1.0.0',
 })
 
@@ -116,7 +117,7 @@ server.registerTool(
 server.registerTool(
   'user_stats',
   {
-    description: 'Historical user performance in a vault — personal APY, balance, rewards.',
+    description: 'Historical user performance in a vault — personal APY, balance, rewards. Requires save_address first.',
     inputSchema: vaultAddressWithDaysSchema,
   },
   async ({ vaultAddress, days }) => {
@@ -129,7 +130,7 @@ server.registerTool(
 server.registerTool(
   'staked_vaults',
   {
-    description: 'List every vault where the user has a position with per-vault details.',
+    description: 'List every vault where the user has a position with per-vault details. Requires save_address first.',
   },
   async () => formatResponse(await callHandler(getVaultsWithStake))
 )
@@ -137,7 +138,7 @@ server.registerTool(
 server.registerTool(
   'vault_balance',
   {
-    description: 'Detailed user position in one vault — stake, osETH, rewards, APY.',
+    description: 'Detailed user position in one vault — stake, osETH, rewards, APY. Requires save_address first.',
     inputSchema: vaultAddressSchema,
   },
   async ({ vaultAddress }) => formatResponse(
@@ -148,7 +149,7 @@ server.registerTool(
 server.registerTool(
   'vault_queue',
   {
-    description: 'Status of the unstake and unboost queues for one vault.',
+    description: 'Status of the unstake and unboost queues for one vault. Requires save_address first.',
     inputSchema: vaultAddressSchema,
   },
   async ({ vaultAddress }) => formatResponse(
@@ -159,7 +160,7 @@ server.registerTool(
 server.registerTool(
   'created_vaults',
   {
-    description: 'List vault addresses created (administered) by the user.',
+    description: 'List vault addresses created (administered) by the user. Requires save_address first.',
   },
   async () => formatResponse(await callHandler(getCreatedVaults))
 )
@@ -178,7 +179,7 @@ server.registerTool(
 const main = async () => {
   const transport = new StdioServerTransport()
   await server.connect(transport)
-  console.error('[stakewise-staking] MCP server started on stdio')
+  console.error('[stakewise-llm-tools] MCP server started on stdio')
 }
 
 main().catch((err) => {

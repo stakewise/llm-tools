@@ -45,7 +45,7 @@ const createResponse = (res: ServerResponse): ResponseFn => (values: ResponseInp
 
   const payload = serializeBigInts({
     ok: code === 200 ? true : false,
-    plugin: 'stakewise-staking',
+    plugin: 'stakewise-llm-tools',
     ...params,
   })
 
@@ -151,7 +151,7 @@ const ensureServerRunning = async () => {
     const onError = (err: Error) => {
       state.starting = undefined
       if ((err as any).code === 'EADDRINUSE') {
-        console.log(`[stakewise-staking] server already running on ${state.host}:${state.port}`)
+        console.log(`[stakewise-llm-tools] server already running on ${state.host}:${state.port}`)
         resolve()
 
         return
@@ -167,7 +167,7 @@ const ensureServerRunning = async () => {
       state.server = server
       state.starting = undefined
 
-      console.log(`[stakewise-staking] server listening on http://${state.host}:${state.port}`)
+      console.log(`[stakewise-llm-tools] server listening on http://${state.host}:${state.port}`)
       resolve()
     })
   })

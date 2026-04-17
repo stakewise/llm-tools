@@ -1,5 +1,5 @@
 ---
-name: stakewise-staking
+name: stakewise-llm-tools
 description: Query a user's StakeWise liquid-staking positions, vault balances, and exit queues via the local plugin HTTP server. Use whenever the user asks about StakeWise, their staking balance, vaults, deposits, rewards, osETH, boost, or unstake/unboost queues.
 ---
 
@@ -66,7 +66,7 @@ All endpoints return JSON of the shape:
 ```json
 {
   "ok": true,
-  "plugin": "stakewise-staking",
+  "plugin": "stakewise-llm-tools",
   "data": { ... },          // raw values used to build `result`
   "format": "markdown",     // when present, `result` is markdown
   "result": "..."           // human-readable text — may be markdown
@@ -76,7 +76,7 @@ All endpoints return JSON of the shape:
 On error:
 
 ```json
-{ "ok": false, "plugin": "stakewise-staking", "error": "..." }
+{ "ok": false, "plugin": "stakewise-llm-tools", "error": "..." }
 ```
 
 ## Required workflow: get the address first

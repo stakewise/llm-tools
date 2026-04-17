@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "stakewise-staking": {
+    "stakewise-llm-tools": {
       "command": "npx",
       "args": ["tsx", "mcp.ts"]
     }

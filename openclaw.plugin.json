@@ -1,5 +1,5 @@
 {
-  "id": "stakewise-staking",
+  "id": "stakewise-llm-tools",
   "name": "Stakewise Staking",
   "description": "Starts a local Stakewise API server and ships a skill for balance lookup",
   "entry": "./index.ts",

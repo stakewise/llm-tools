@@ -38,6 +38,26 @@ const getStakeByVault = async (values: Input) => {
     liqThresholdPercent: BigInt(liqThresholdPercent),
   })
 
+  const params: any = {
+    maxWithdrawAssets,
+    stakedAssets: stake.assets,
+    rewardsAssets: stake.totalEarnedAssets,
+  }
+
+  if (params.stakedAssets) {
+    params.maxMintShares = maxMintShares
+  }
+
+  if (osToken.shares) {
+    params.health = health
+    params.sharesToBurn = sharesToBurn
+    params.mintedShares = osToken.shares
+  }
+
+  if (boost.shares) {
+    params.boostedShares = boost.shares
+  }
+
   return {
     params: {
       health,
