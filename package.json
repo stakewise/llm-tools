@@ -1,6 +1,6 @@
 {
   "name": "@stakewise/llm-tools",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Ethereum staking tools with StakeWise protocol",
   "type": "module",
   "main": "index.ts",
