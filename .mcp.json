@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "stakewise-staking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "mcp.ts"]
+    }
+  }
+}
