@@ -35,7 +35,7 @@ const formatPayload = (payload: any): string => {
   return lines.join('\n') + '\n'
 }
 
-async function main() {
+const main = async () => {
   await ensureServerRunning()
 
   const proxy = http.createServer(async (req, res) => {
@@ -68,13 +68,16 @@ async function main() {
     console.log('\n[debug-server] available routes (curl the proxy):')
     console.log(`  curl http://${state.host}:${ProxyPort}/health`)
     console.log(`  curl "http://${state.host}:${ProxyPort}/save-address?address=0x..."`)
-    console.log(`  curl "http://${state.host}:${ProxyPort}/get-vault-data?vaultAddress=0x..."`)
-    console.log(`  curl "http://${state.host}:${ProxyPort}/get-vault-stats?vaultAddress=0x...&days=30"`)
-    console.log(`  curl "http://${state.host}:${ProxyPort}/get-user-stats?vaultAddress=0x...&days=30"`)
-    console.log(`  curl "http://${state.host}:${ProxyPort}/get-vault-balance?vaultAddress=0x..."`)
-    console.log(`  curl "http://${state.host}:${ProxyPort}/get-vault-queue?vaultAddress=0x..."`)
-    console.log(`  curl http://${state.host}:${ProxyPort}/get-staked-vaults`)
-    console.log(`  curl http://${state.host}:${ProxyPort}/get-created-vaults`)
+    console.log(`  curl "http://${state.host}:${ProxyPort}/vault-data?vaultAddress=0x..."`)
+    console.log(`  curl "http://${state.host}:${ProxyPort}/vault-stats?vaultAddress=0x...&days=30"`)
+    console.log(`  curl "http://${state.host}:${ProxyPort}/user-stats?vaultAddress=0x...&days=30"`)
+    console.log(`  curl "http://${state.host}:${ProxyPort}/vault-balance?vaultAddress=0x..."`)
+    console.log(`  curl "http://${state.host}:${ProxyPort}/vault-queue?vaultAddress=0x..."`)
+    console.log(`  curl http://${state.host}:${ProxyPort}/staked-vaults`)
+    console.log(`  curl http://${state.host}:${ProxyPort}/vaults-list`)
+    console.log(`  curl http://${state.host}:${ProxyPort}/created-vaults`)
+    console.log(`  curl "http://${state.host}:${ProxyPort}/vault-whitelist?vaultAddress=0x..."`)
+
     console.log('\nPress Ctrl+C to stop\n')
   })
 }

@@ -10,6 +10,7 @@ import {
   getVaultBalance,
   getCreatedVaults,
   getVaultsWithStake,
+  getVaultWhitelist,
 } from './methods'
 import { state } from './state'
 import type { ResponseInput, ResponseFn } from './types'
@@ -65,43 +66,48 @@ const createServer = () => http.createServer(async (req: any, res: ServerRespons
     return
   }
 
-  if (req.method === 'GET' && url.pathname === '/get-vault-data') {
+  if (req.method === 'GET' && url.pathname === '/vault-data') {
     await getVaultData(url, response)
     return
   }
 
-  if (req.method === 'GET' && url.pathname === '/get-vault-stats') {
+  if (req.method === 'GET' && url.pathname === '/vault-stats') {
     await getVaultStats(url, response)
     return
   }
 
-  if (req.method === 'GET' && url.pathname === '/get-user-stats') {
+  if (req.method === 'GET' && url.pathname === '/user-stats') {
     await getUserStats(url, response)
     return
   }
 
-  if (req.method === 'GET' && url.pathname === '/get-vault-balance') {
+  if (req.method === 'GET' && url.pathname === '/vault-balance') {
     await getVaultBalance(url, response)
     return
   }
 
-  if (req.method === 'GET' && url.pathname === '/get-vault-queue') {
+  if (req.method === 'GET' && url.pathname === '/vault-queue') {
     await getVaultQueue(url, response)
     return
   }
 
-  if (req.method === 'GET' && url.pathname === '/get-staked-vaults') {
+  if (req.method === 'GET' && url.pathname === '/staked-vaults') {
     await getVaultsWithStake(url, response)
     return
   }
 
-  if (req.method === 'GET' && url.pathname === '/get-created-vaults') {
+  if (req.method === 'GET' && url.pathname === '/created-vaults') {
     await getCreatedVaults(url, response)
     return
   }
 
   if (req.method === 'GET' && url.pathname === '/vaults-list') {
     await getVaultsList(url, response)
+    return
+  }
+
+  if (req.method === 'GET' && url.pathname === '/vault-whitelist') {
+    await getVaultWhitelist(url, response)
     return
   }
 

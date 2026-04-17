@@ -111,7 +111,7 @@ const getVaultsWithStake = async (_: URL, response: ResponseFn) => {
 
       Your statistics in this vault:
       ${formatStakeText(vaultData)}
-
+      ---
     `
   }
 

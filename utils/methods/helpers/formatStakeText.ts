@@ -14,16 +14,23 @@ const formatStakeText = (data: StakeData) => {
     mintedShares,
     boostedShares,
     rewardsAssets,
-    params: { health, maxWithdrawAssets },
+    params: {
+      health,
+      maxWithdrawAssets,
+      maxMintShares,
+      sharesToBurn,
+    },
   } = data
 
   let text = `- APY: **${userApy}** %\n`
 
   text += `- Stake: **${stakedAssets}** ETH\n`
+  text += `- Max mintable osETH: **${formatTokenValue(maxMintShares)}** osETH\n\n`
 
   if (mintedShares) {
     text += `- Minted: **${mintedShares}** osETH\n`
     text += `Max withdraw assets: **${formatTokenValue(maxWithdrawAssets)}**`
+    text += `osETH to burn for full unstake: **${formatTokenValue(sharesToBurn)}** osETH`
 
     switch (health) {
       case OsTokenPositionHealth.Healthy:
@@ -39,7 +46,7 @@ const formatStakeText = (data: StakeData) => {
         break
 
       case OsTokenPositionHealth.Unhealthy:
-        text += `- Position health: **Unhealthy**\n`
+        text += `- Position health: **Unhealthy**\n\n`
         break
 
       default:

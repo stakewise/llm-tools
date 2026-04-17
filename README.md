@@ -52,13 +52,14 @@ The plugin starts a local HTTP server on port **5165** (configurable). When the 
 | `/health` | Server health check | No |
 | `/save-address?address=0x...` | Save user wallet for subsequent queries | No |
 | `/vaults-list` | All StakeWise vaults sorted by APY | No |
-| `/get-vault-data?vaultAddress=0x...` | Public vault info (APY, fee, capacity, osETH config) | No |
-| `/get-vault-stats?vaultAddress=0x...&days=30` | Historical vault performance (daily APY, TVL, rewards) | No |
-| `/get-staked-vaults` | All vaults where the user has a position | Yes |
-| `/get-vault-balance?vaultAddress=0x...` | User's detailed position in a specific vault | Yes |
-| `/get-vault-queue?vaultAddress=0x...` | Unstake & unboost queue status | Yes |
-| `/get-user-stats?vaultAddress=0x...&days=30` | User's personal earnings history in a vault | Yes |
-| `/get-created-vaults` | Vaults administered by the user | Yes |
+| `/vault-data?vaultAddress=0x...` | Public vault info (APY, fee, capacity, osETH config) | No |
+| `/vault-stats?vaultAddress=0x...&days=30` | Historical vault performance (daily APY, TVL, rewards) | No |
+| `/staked-vaults` | All vaults where the user has a position | Yes |
+| `/vault-balance?vaultAddress=0x...` | User's detailed position in a specific vault | Yes |
+| `/vault-queue?vaultAddress=0x...` | Unstake & unboost queue status | Yes |
+| `/user-stats?vaultAddress=0x...&days=30` | User's personal earnings history in a vault | Yes |
+| `/created-vaults` | Vaults administered by the user | Yes |
+| `/vault-whitelist?vaultAddress=0x...` | Whitelist for a private vault | No |
 
 All responses return JSON with `ok`, `data`, and a human-readable `result` field.
 

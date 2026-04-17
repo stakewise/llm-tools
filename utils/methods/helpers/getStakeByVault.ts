@@ -17,14 +17,18 @@ const getStakeByVault = async (values: Input) => {
     osToken,
     stake,
     { liqThresholdPercent },
+    maxMintShares,
     maxWithdrawAssets,
+    sharesToBurn,
   ] = await Promise.all([
     sdk.boost.getData(values),
     sdk.vault.getUserApy(values),
     sdk.osToken.getBalance(values),
     sdk.vault.getStakeBalance(values),
     sdk.vault.getOsTokenConfig(values),
+    sdk.osToken.getMaxMintAmount(values),
     sdk.vault.getMaxWithdrawAmount(values),
+    sdk.osToken.getBurnAmountForUnstake(values),
   ])
 
   const { health } = await sdk.osToken.getHealthFactor({
@@ -37,6 +41,8 @@ const getStakeByVault = async (values: Input) => {
   return {
     params: {
       health,
+      sharesToBurn,
+      maxMintShares,
       maxWithdrawAssets,
       stakedAssets: stake.assets,
       boostedShares: boost.shares,
