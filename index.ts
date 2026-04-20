@@ -16,7 +16,7 @@ export default definePluginEntry({
 
     api.registerCommand({
       name: 'stakewise_reset',
-      description: 'Restart the local Stakewise mock API server.',
+      description: 'Restart the local Stakewise API server.',
       handler: async () => {
         await stopServer()
         await ensureServerRunning()

@@ -36,8 +36,8 @@ const getVaultWhitelist = async (url: URL, response: ResponseFn) => {
 
   result += `\n## Addresses\n`
 
-  for (const addr of whitelist) {
-    result += `- ${addr}\n`
+  for (const data of whitelist) {
+    result += `- ${data.address}\n`
   }
 
   response({

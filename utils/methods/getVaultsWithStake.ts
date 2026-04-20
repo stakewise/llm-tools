@@ -72,7 +72,7 @@ const getVaultsWithStake = async (_: URL, response: ResponseFn) => {
   let vaults = '',
       totalStaked = 0n,
       totalMinted = 0n,
-      totalBossted = 0n,
+      totalBoosted = 0n,
       totalRewards = 0n
 
   type VaultData = typeof data.vaults[number] & {
@@ -91,7 +91,7 @@ const getVaultsWithStake = async (_: URL, response: ResponseFn) => {
 
     totalStaked += vaultData.params.stakedAssets
     totalMinted += vaultData.params.mintedShares
-    totalBossted += vaultData.params.boostedShares
+    totalBoosted += vaultData.params.boostedShares
     totalRewards += vaultData.params.rewardsAssets
 
     vaultsData.push({
@@ -124,8 +124,8 @@ const getVaultsWithStake = async (_: URL, response: ResponseFn) => {
       result += `- Total minted: **${formatTokenValue(totalMinted)}** osETH\n`
     }
 
-    if (totalBossted) {
-      result += `- Total boosted: **${formatTokenValue(totalBossted)}** osETH\n`
+    if (totalBoosted) {
+      result += `- Total boosted: **${formatTokenValue(totalBoosted)}** osETH\n`
     }
 
     result += `- Total rewards: **${formatTokenValue(totalRewards)}** ETH\n`

@@ -113,7 +113,7 @@ const getVaultQueue = async (url: URL, response: ResponseFn) => {
     `
 
     if (isClaimable) {
-      const time = getQueueTime(unstakeQueue.duration)
+      const time = getQueueTime(unboostQueue.duration)
 
       if (time) {
         result += `

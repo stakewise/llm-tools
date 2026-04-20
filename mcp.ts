@@ -17,6 +17,8 @@ import {
 } from './utils/methods'
 import type { ResponseInput, ResponseFn } from './utils/types'
 
+import { version } from './package.json'
+
 
 const callHandler = (
   handler: (url: URL, response: ResponseFn) => void | Promise<void>,
@@ -68,7 +70,7 @@ const vaultAddressWithDaysSchema = z.object({
 
 const server = new McpServer({
   name: 'stakewise-llm-tools',
-  version: '1.0.0',
+  version,
 })
 
 server.registerTool(

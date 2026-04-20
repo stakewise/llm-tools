@@ -29,8 +29,8 @@ const formatStakeText = (data: StakeData) => {
 
   if (mintedShares) {
     text += `- Minted: **${mintedShares}** osETH\n`
-    text += `Max withdraw assets: **${formatTokenValue(maxWithdrawAssets)}**`
-    text += `osETH to burn for full unstake: **${formatTokenValue(sharesToBurn)}** osETH`
+    text += `- Max withdraw assets: **${formatTokenValue(maxWithdrawAssets)}**\n`
+    text += `- osETH to burn for full unstake: **${formatTokenValue(sharesToBurn)}** osETH\n`
 
     switch (health) {
       case OsTokenPositionHealth.Healthy:

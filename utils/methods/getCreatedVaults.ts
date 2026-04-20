@@ -43,9 +43,7 @@ const getCreatedVaults = async (_: URL, response: ResponseFn) => {
     return
   }
 
-  const addresses: string[] = []
-
-  data.vaults.forEach(({ address }) => addresses.push(getAddress(address)))
+  const addresses: string[] = data.vaults.map(({ address }) => getAddress(address))
 
   response({
     data: addresses,
