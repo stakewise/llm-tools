@@ -10,7 +10,7 @@ const isValidUserAddress = (response: ResponseFn) => {
       code: 400,
       error: `
         Address not found.
-        Enter the command "Set wallet address for the Stakewise plugin" to save the address.
+        Enter the command "Set wallet address for the StakeWise plugin" to save the address.
       `,
     })
 

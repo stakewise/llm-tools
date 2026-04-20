@@ -1,7 +1,7 @@
 {
   "id": "stakewise-llm-tools",
-  "name": "Stakewise Staking",
-  "description": "Starts a local Stakewise API server and ships a skill for balance lookup",
+  "name": "StakeWise Staking",
+  "description": "Starts the local StakeWise API server and runs scripts to retrieve protocol data",
   "entry": "./index.ts",
   "skills": [ "./skills" ],
   "configSchema": {

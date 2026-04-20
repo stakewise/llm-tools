@@ -6,8 +6,8 @@ import { state, stopServer, ensureServerRunning } from './utils'
 
 export default definePluginEntry({
   id: 'stakewise-llm-tools',
-  name: 'Stakewise Staking',
-  description: 'Starts a local Stakewise API server and adds a reset command plus skill',
+  name: 'StakeWise Staking',
+  description: 'Starts a local StakeWise API server and adds a reset command plus skill',
   async register(api: OpenClawPluginApi, ctx?: { config?: { port?: number; host?: string } }) {
     state.port = ctx?.config?.port || 5165
     state.host = ctx?.config?.host || '127.0.0.1'
@@ -16,7 +16,7 @@ export default definePluginEntry({
 
     api.registerCommand({
       name: 'stakewise_reset',
-      description: 'Restart the local Stakewise API server.',
+      description: 'Restart the local StakeWise API server.',
       handler: async () => {
         await stopServer()
         await ensureServerRunning()
