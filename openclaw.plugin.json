@@ -1,12 +1,21 @@
 {
-  "id": "stakewise-staking-plugin",
-  "name": "StakeWise staking",
-  "description": "StakeWise protocol tools for staking, balances, rewards, and vault operations. Use whenever StakeWise is mentioned.",
-  "entry": "./src/index.ts",
+  "id": "stakewise-llm-tools",
+  "name": "StakeWise Staking",
+  "description": "Starts the local StakeWise API server and runs scripts to retrieve protocol data",
+  "entry": "./index.ts",
   "skills": [ "./skills" ],
   "configSchema": {
     "type": "object",
-    "additionalProperties": false,
-    "properties": {}
+    "properties": {
+      "port": {
+        "type": "number",
+        "default": 5165
+      },
+      "host": {
+        "type": "string",
+        "default": "127.0.0.1"
+      }
+    },
+    "additionalProperties": false
   }
 }

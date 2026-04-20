@@ -1,0 +1,8 @@
+old
+.env
+.idea
+.vscode
+.DS_Store
+promt.txt
+node_modules
+.claude/settings.local.json

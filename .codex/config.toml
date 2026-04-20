@@ -1,0 +1,3 @@
+[mcp_servers.stakewise-llm-tools]
+command = "npx"
+args = ["tsx", "mcp.ts"]

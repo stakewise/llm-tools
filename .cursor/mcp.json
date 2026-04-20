@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "stakewise-llm-tools": {
+      "command": "npx",
+      "args": ["tsx", "mcp.ts"]
+    }
+  }
+}
