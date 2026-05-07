@@ -2,6 +2,11 @@
   "name": "@stakewise/llm-tools",
   "version": "1.0.2",
   "description": "Ethereum staking tools with StakeWise protocol",
+  "homepage": "https://github.com/stakewise/llm-tools",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stakewise/llm-tools.git"
+  },
   "type": "module",
   "main": "index.ts",
   "bin": {
