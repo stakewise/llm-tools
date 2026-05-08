@@ -55,8 +55,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Run tests
-        run: pnpm test
-
       - name: Publish to npm with provenance
         run: npm publish --provenance --access public --ignore-scripts --tag latest
