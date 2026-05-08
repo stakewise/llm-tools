@@ -1,6 +1,6 @@
 {
   "name": "@stakewise/llm-tools",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Ethereum staking tools with StakeWise protocol",
   "homepage": "https://github.com/stakewise/llm-tools",
   "repository": {
