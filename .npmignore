@@ -1,0 +1,23 @@
+# Skill plugin and its build artifacts
+data-skill/
+.claude-plugin/
+
+# Maintenance scripts and CI configs
+scripts/
+.github/
+
+# Tooling configs
+eslint.config.js
+tsconfig.json
+pnpm-lock.yaml
+.gitignore
+CODEOWNERS
+
+# Editor / OS noise.
+.DS_Store
+*.log
+*.tmp
+*.bak
+.idea/
+.vscode/
+.claude/

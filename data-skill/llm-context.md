@@ -314,7 +314,7 @@ The canonical list of endpoints used by `@stakewise/v3-sdk` lives at the **`main
 **When to fetch these at runtime** — the bundled tables above are the fast path and should be your default. Open the raw URL only when:
 
 - The user reports an error suggesting an endpoint has moved (e.g. "the URL in your answer returns 404").
-- You see `verify-queries.yml` has opened an `sdk-version-drift` issue more recent than this file (check `plugin.json` `metadata.subgraphSchemaDate` as a freshness marker).
+- This skill's bundled `metadata.subgraphSchemaDate` in `plugin.json` is more than ~30 days old (the bundled table may be lagging the SDK).
 - A primary URL has been failing for >24h on a network that should have one (anomaly worth double-checking against the SDK source).
 
 The raw files are small (each ~3 KB) and parse with a single `api: { backend: '...', subgraph: '...' | [...] }` look-up. Do not re-fetch on every query — it adds 1–2 s of latency for no benefit when the bundled table is current.
@@ -333,7 +333,7 @@ After any URL edit:
 - **Re-run the cookbook smoke** against all three chains (the daily `verify-queries.yml` workflow does this, but a one-shot manual `bash scripts/verify-queries.sh` after the edit catches regressions before CI does).
 - **Bump the skill version** in `data-skill/.claude-plugin/plugin.json` — minor for an added URL (e.g. new chain), major for a renamed/removed host (breaking for consumers that hardcoded the old one).
 
-The daily GitHub Action also runs `scripts/check-sdk-version.mjs`, which fetches `https://registry.npmjs.org/@stakewise/v3-sdk/latest` and opens an `sdk-version-drift` issue when the pinned SDK version is behind by a minor or major bump — that's the trigger to check whether `helpers/configs/*.ts` URLs changed in the new release.
+SDK URL drift is detected on the consumer side: the `pre-push` hook in `stakewise/frontwise` (`scripts/check-skill-drift.sh`) runs at the moment the `apps/v3-sdk` submodule pointer is bumped and prints an advisory when `helpers/configs/*.ts` changed between the old and new SDK commits. Use that signal to decide whether to update the bundled tables above. This repo's `verify-queries.yml` covers schema-snapshot and live-endpoint health; it does not track the SDK npm version.
 
 
 ---
