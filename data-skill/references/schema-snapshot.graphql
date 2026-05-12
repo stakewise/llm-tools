@@ -1,0 +1,1163 @@
+# Snapshot of stakewise/v3-subgraph@fc2a4ab4d21ce41199783e6a432fc063a6ceabf1 on 2026-05-12
+# Source: https://github.com/stakewise/v3-subgraph/blob/fc2a4ab4d21ce41199783e6a432fc063a6ceabf1/src/schema.graphql
+# DO NOT EDIT — automatically synced by scripts/snapshot-subgraph-schema.sh
+enum LtvStatus {
+  Healthy
+  Moderate
+  Risky
+  Unhealthy
+}
+
+"""
+Vault allocator
+"""
+type Allocator @entity(immutable: false) {
+  "<Vault ID>-<Allocator address>"
+  id: ID!
+
+  "The allocator's address"
+  address: Bytes!
+
+  "The allocator's shares amount"
+  shares: BigInt!
+
+  "The allocator's assets amount"
+  assets: BigInt!
+
+  "The allocator's assets amount that are exiting"
+  exitingAssets: BigInt!
+
+  "The allocator's minted OsToken shares amount"
+  mintedOsTokenShares: BigInt!
+
+  "The allocator's LTV percent. Will be null if there are no OsTokens minted"
+  ltv: BigDecimal!
+
+  "The allocator's LTV descriptive status"
+  ltvStatus: LtvStatus!
+
+  "The allocator's average weekly APY"
+  apy: BigDecimal!
+
+  "The vault of the allocator"
+  vault: Vault!
+
+  "Allocator's total earned assets"
+  totalEarnedAssets: BigInt!
+
+  "Allocator's total earned assets from staking"
+  totalStakeEarnedAssets: BigInt!
+
+  "Allocator's total earned assets from boost"
+  totalBoostEarnedAssets: BigInt!
+
+  "The exit requests of the allocator"
+  exitRequests: [ExitRequest!]! @derivedFrom(field: "allocator")
+
+  "The total period assets earned from staking"
+  _periodStakeEarnedAssets: BigInt!
+
+  "The total period assets earned from boost"
+  _periodBoostEarnedAssets: BigInt!
+
+  "The total period OsToken shares earned from boost"
+  _periodBoostEarnedOsTokenShares: BigInt!
+
+  "The total period OsToken shares minted as a fee"
+  _periodOsTokenFeeShares: BigInt!
+}
+
+"""
+Token transfer
+"""
+type TokenTransfer @entity(immutable: true) {
+  "Set to `transaction hash-log index`"
+  id: ID!
+
+  "The transfer hash"
+  hash: Bytes!
+
+  "The transfer amount"
+  amount: BigInt!
+
+  "The transfer token symbol"
+  tokenSymbol: String!
+
+  "The transfer sender"
+  from: Bytes!
+
+  "The transfer receiver"
+  to: Bytes!
+
+  "The transfer timestamp"
+  timestamp: BigInt!
+}
+
+"""
+OsToken holder
+"""
+type OsTokenHolder @entity(immutable: false) {
+  "<OsToken holder address>"
+  id: ID!
+
+  "The OsToken holder balance (shares)"
+  balance: BigInt!
+
+  "The total number of OsToken transfers"
+  transfersCount: BigInt!
+}
+
+"""
+SwiseToken holder
+"""
+type SwiseTokenHolder @entity(immutable: false) {
+  "<SwiseToken holder address>"
+  id: ID!
+
+  "The SwiseToken holder balance"
+  balance: BigInt!
+
+  "The total number of SwiseToken transfers"
+  transfersCount: BigInt!
+}
+
+"""
+Vault exit request
+"""
+type ExitRequest @entity(immutable: false) {
+  "<Vault ID>-<Exit queue id>"
+  id: ID!
+
+  "The exit queue position ticket"
+  positionTicket: BigInt!
+
+  "Defines whether the exit request is V2"
+  isV2Position: Boolean!
+
+  "The address that has created exit position"
+  owner: Bytes!
+
+  "The address that will receive exited assets"
+  receiver: Bytes!
+
+  "The allocator of the vault that created the exit request"
+  allocator: Allocator!
+
+  "The total number of tickets in the exit queue"
+  totalTickets: BigInt!
+
+  "The total number of assets queued for exit"
+  totalAssets: BigInt!
+
+  "The total number of assets that has exited"
+  exitedAssets: BigInt!
+
+  "The exit queue index that must be used to claim the exit. Will be null if the exit is not claimable"
+  exitQueueIndex: BigInt
+
+  "The timestamp when the exit request was created"
+  timestamp: BigInt!
+
+  "The exit request vault"
+  vault: Vault!
+
+  "The estimated withdrawal timestamp. Updated by the backend service."
+  withdrawalTimestamp: BigInt
+
+  "Defines whether the exit request is claimable"
+  isClaimable: Boolean!
+
+  "Defines whether the exit request is claimed"
+  isClaimed: Boolean!
+}
+
+"""
+Vault
+"""
+type Vault @entity(immutable: false) {
+  "Vault address"
+  id: ID!
+
+  "The vault token name. Can be null if vault does not have a token."
+  tokenName: String
+
+  "The vault token symbol Can be null if vault does not have a token."
+  tokenSymbol: String
+
+  "The optional vault name extracted from metadata IPFS file"
+  displayName: String
+
+  "The optional description extracted from metadata IPFS file"
+  description: String
+
+  "The optional image URL extracted from metadata IPFS file"
+  imageUrl: String
+
+  "The address of the factory used to create vault"
+  factory: Bytes!
+
+  "The address of the vault admin"
+  admin: Bytes!
+
+  "The max total assets that can be allocated into the vault"
+  capacity: BigInt!
+
+  "The staking fee percent charged by the vault"
+  feePercent: Int!
+
+  "The address of the vault's fee recipient"
+  feeRecipient: Bytes!
+
+  "The address of the vault's validators manager"
+  validatorsManager: Bytes
+
+  "The address of the vault's deposit data manager. If it's null, then the vault uses own validators manager."
+  depositDataManager: Bytes!
+
+  "The MEV and priority fees escrow address. If it's null, then the vault uses shared MEV escrow."
+  mevEscrow: Bytes
+
+  "The vault deposit data merkle tree root. It's modified by the deposit data manager."
+  depositDataRoot: Bytes
+
+  "The vault metadata IPFS hash"
+  metadataIpfsHash: String
+
+  "The vault rewards root"
+  rewardsRoot: Bytes
+
+  "The last vault rewards update timestamp"
+  rewardsTimestamp: BigInt
+
+  "The vault rewards IPFS hash"
+  rewardsIpfsHash: String
+
+  "The vault reward used to submit state update proof"
+  proofReward: BigInt
+
+  "The vault unlocked MEV reward used to submit state update proof"
+  proofUnlockedMevReward: BigInt
+
+  "The vault rewards root proof used to submit state update proof"
+  proof: [String!]
+
+  "The vault allocators"
+  allocators: [Allocator!]! @derivedFrom(field: "vault")
+
+  "The vault consensus reward"
+  consensusReward: BigInt!
+
+  "The vault execution reward that is locked in the smoothing pool"
+  lockedExecutionReward: BigInt!
+
+  "The vault execution reward"
+  unlockedExecutionReward: BigInt!
+
+  "The vault slashed MEV reward in the smoothing pool"
+  slashedMevReward: BigInt!
+
+  "The vault last fee percent"
+  lastFeePercent: Int
+
+  "The timestamp of the last fee update"
+  lastFeeUpdateTimestamp: BigInt
+
+  "Defines whether the vault can harvest new rewards"
+  canHarvest: Boolean!
+
+  "The vault allocators' actions"
+  allocatorActions: [AllocatorAction!]! @derivedFrom(field: "vault")
+
+  "The vault exit requests"
+  exitRequests: [ExitRequest!]! @derivedFrom(field: "vault")
+
+  "The vault reward splitters"
+  rewardSplitters: [RewardSplitter!]! @derivedFrom(field: "vault")
+
+  "The vault leverage strategy positions"
+  leveragePositions: [LeverageStrategyPosition!]! @derivedFrom(field: "vault")
+
+  "The vault OsToken exit request positions"
+  osTokenExitRequests: [OsTokenExitRequest!]! @derivedFrom(field: "vault")
+
+  "The list of sub vaults"
+  subVaults: [SubVault!]! @derivedFrom(field: "metaVault")
+
+  "The total number of sub vaults"
+  subVaultsCount: Int!
+
+  "The total number of shares"
+  totalShares: BigInt!
+
+  "The total number of queued shares"
+  queuedShares: BigInt!
+
+  "The vault score. Managed by the backend service."
+  score: BigDecimal!
+
+  "The total number of assets"
+  totalAssets: BigInt!
+
+  "The current exchange rate for 10^18 amount"
+  rate: BigInt!
+
+  "The total number of assets that are exiting (in V2 vaults)"
+  exitingAssets: BigInt!
+
+  "The total number of tickets that are exiting (in V2 vaults)"
+  exitingTickets: BigInt!
+
+  "Indicates whether the Vault is private"
+  isPrivate: Boolean!
+
+  "Indicates whether the Vault is with blocklist"
+  isBlocklist: Boolean!
+
+  "Indicates whether the Vault has ERC-20 token"
+  isErc20: Boolean!
+
+  "Indicates whether the Vault supports minting OsToken"
+  isOsTokenEnabled: Boolean!
+
+  "Indicates whether the Vault is a meta vault and has sub vaults"
+  isMetaVault: Boolean!
+
+  "Indicates whether the Vault has registered validators"
+  isCollateralized: Boolean!
+
+  "If the Vault is private, whitelister can add/remove allocators"
+  whitelister: Bytes
+
+  "If the Vault is with blocklist, blocklist manager can block allocators from depositing"
+  blocklistManager: Bytes
+
+  "Vault address string for search"
+  addressString: String!
+
+  "The timestamp the metadata was updated at"
+  metadataUpdatedAt: BigInt
+
+  "The timestamp the vault was created at"
+  createdAt: BigInt!
+
+  "The vault version"
+  version: BigInt!
+
+  "The vault osTokenConfig"
+  osTokenConfig: OsTokenConfig!
+
+  "Whether the vault is a genesis vault (v2 pool migration)"
+  isGenesis: Boolean!
+
+  "The vault current total APY"
+  apy: BigDecimal!
+
+  "The vault base APY calculated as weekly average of staking APY"
+  baseApy: BigDecimal!
+
+  "The current extra incentives APY"
+  extraApy: BigDecimal!
+
+  "The average weekly max boost APY earned in this vault by the allocator"
+  allocatorMaxBoostApy: BigDecimal!
+
+  "The total number of vault blocklisted accounts"
+  blocklistCount: BigInt!
+
+  "The total number of vault whitelisted accounts"
+  whitelistCount: BigInt!
+
+  "The total period assets earned from staking"
+  _periodEarnedAssets: BigInt!
+
+  "The total amount of the accumulated unclaimed fee recipient shares"
+  _unclaimedFeeRecipientShares: BigInt!
+
+  "The assets of the allocator from the previous snapshot to calculate vault APY"
+  _prevAllocatorAssets: BigInt
+
+  "The timestamp of the last snapshot. Can be null if no snapshots were taken."
+  _lastSnapshotTimestamp: Timestamp
+}
+
+"""
+Sub vault
+"""
+type SubVault @entity(immutable: false) {
+  "Set to `meta vault address-sub vault address`"
+  id: ID!
+
+  "The meta vault"
+  metaVault: Vault!
+
+  "The sub vault"
+  subVault: Vault!
+}
+
+"""
+Own MEV escrow
+"""
+type OwnMevEscrow @entity(immutable: false) {
+  "The address of the Own MEV escrow"
+  id: ID!
+
+  "The total amount of harvested assets"
+  totalHarvestedAssets: BigInt!
+
+  "The last checkpointed assets for period rewards calculation"
+  lastCheckpointAssets: BigInt!
+}
+
+"""
+XDai Converter
+"""
+type XdaiConverter @entity(immutable: false) {
+  "The address of the vault that uses the XDai converter"
+  id: ID!
+
+  "The address of the XDai converter"
+  address: Bytes!
+
+  "The total amount of harvested assets"
+  totalHarvestedAssets: BigInt!
+
+  "The last checkpointed assets for period rewards calculation"
+  lastCheckpointAssets: BigInt!
+}
+
+enum AllocatorActionType {
+  VaultCreated
+  Deposited
+  Migrated
+  Redeemed
+  TransferIn
+  TransferOut
+  ExitQueueEntered
+  ExitedAssetsClaimed
+  OsTokenMinted
+  OsTokenBurned
+  OsTokenLiquidated
+  OsTokenRedeemed
+  BoostDeposited
+  BoostExitQueueEntered
+  BoostExitedAssetsClaimed
+}
+
+"""
+Allocator action
+"""
+type AllocatorAction @entity(immutable: true) {
+  "Set to `transaction hash-log index`"
+  id: ID!
+
+  "The action hash"
+  hash: Bytes!
+
+  "The allocator's vault"
+  vault: Vault!
+
+  "The allocator's address"
+  address: Bytes!
+
+  "The type of the action"
+  actionType: AllocatorActionType!
+
+  "The amount of action's assets"
+  assets: BigInt
+
+  "The amount of action's shares"
+  shares: BigInt
+
+  "The timestamp the action was created at"
+  createdAt: BigInt!
+}
+
+"""
+OsToken data
+"""
+type OsToken @entity(immutable: false) {
+  "Set to 1"
+  id: ID!
+
+  "The OsToken average weekly APY"
+  apy: BigDecimal!
+
+  "The list of OsToken APY snapshot"
+  apys: [BigDecimal!]!
+
+  "The OsToken fee percent"
+  feePercent: Int!
+
+  "The OsToken total supply"
+  totalSupply: BigInt!
+
+  "The OsToken total assets"
+  totalAssets: BigInt!
+}
+
+"""
+Network data
+"""
+type Network @entity(immutable: false) {
+  "Always 0"
+  id: ID!
+
+  "Defines whether the factories are initialized"
+  factoriesInitialized: Boolean!
+
+  "The total assets locked in the network"
+  totalAssets: BigInt!
+
+  "The total assets earned in the network"
+  totalEarnedAssets: BigInt!
+
+  "Total number of vaults"
+  vaultsCount: Int!
+
+  "Total number of collateralized vaults"
+  collateralizedVaultsCount: Int!
+
+  "The non repeated addresses of all the vaults"
+  vaultIds: [String!]!
+
+  "The non repeated addresses of all the vaults used for osToken rate calculation"
+  osTokenVaultIds: [String!]!
+
+  "Oracles config ipfs hash"
+  oraclesConfigIpfsHash: String!
+
+  "The total number of non repeated vault allocators and osToken holders"
+  usersCount: Int!
+}
+
+type User @entity(immutable: false) {
+  "User address"
+  id: ID!
+
+  "The total number of vaults, where user is an allocator"
+  vaultsCount: Int!
+
+  "Defines whether the user holds any osToken shares"
+  isOsTokenHolder: Boolean!
+}
+
+"""
+Account that is whitelisted in the private Vault
+"""
+type PrivateVaultAccount @entity(immutable: false) {
+  "<Vault ID>-<address>"
+  id: ID!
+
+  "The address of the account"
+  address: Bytes!
+
+  "The private Vault"
+  vault: Vault!
+
+  "The timestamp when the account was added"
+  createdAt: BigInt!
+}
+
+"""
+Account that is blocked in the Vault
+"""
+type VaultBlockedAccount @entity(immutable: false) {
+  "<Vault ID>-<address>"
+  id: ID!
+
+  "The address of the account"
+  address: Bytes!
+
+  "The blocklist Vault"
+  vault: Vault!
+
+  "The timestamp when the account was added"
+  createdAt: BigInt!
+}
+
+"""
+Reward splitter used to distribute fee accumulated in the vault
+"""
+type RewardSplitter @entity(immutable: false) {
+  "Reward splitter address"
+  id: ID!
+
+  "The reward splitter version"
+  version: BigInt!
+
+  "The address of the account that can modify the reward splitter share holders"
+  owner: Bytes!
+
+  "The address of the account that can claim the rewards. Will be null for the reward splitters with version < 3."
+  claimer: Bytes
+
+  "The total number of shares"
+  totalShares: BigInt!
+
+  "The Vault that reward splitter belongs to"
+  vault: Vault!
+
+  "Shareholders of the reward splitter"
+  shareHolders: [RewardSplitterShareHolder!]! @derivedFrom(field: "rewardSplitter")
+}
+
+"""
+Reward splitter shareholder
+"""
+type RewardSplitterShareHolder @entity(immutable: false) {
+  "<RewardSplitter ID>-<holder address>"
+  id: ID!
+
+  "The reward splitter"
+  rewardSplitter: RewardSplitter!
+
+  "The address of the vault"
+  vault: Vault!
+
+  "The address of shareholder"
+  address: Bytes!
+
+  "The amount of shares"
+  shares: BigInt!
+
+  "The amount of earned vault shares"
+  earnedVaultShares: BigInt!
+
+  "The amount of earned vault assets"
+  earnedVaultAssets: BigInt!
+}
+
+"""
+StakeWise V3 transaction
+"""
+type Transaction @entity(immutable: true) {
+  "Transaction hash"
+  id: ID!
+}
+
+"""
+StakeWise V2 pool data
+"""
+type V2Pool @entity(immutable: false) {
+  "1"
+  id: ID!
+
+  "V2 Pool total assets"
+  totalAssets: BigInt!
+
+  "Total rewards accumulated"
+  rewardAssets: BigInt!
+
+  "Total assets staked"
+  principalAssets: BigInt!
+
+  "Total penalty accrued"
+  penaltyAssets: BigInt!
+
+  "The staking fee percent charged by the pool"
+  feePercent: Int!
+
+  "Whether V2 Pool has migrated to V3"
+  migrated: Boolean!
+
+  "Whether V2 Pool is disconnected"
+  isDisconnected: Boolean!
+
+  "The current exchange rate for 10^18 staked token"
+  rate: BigInt!
+
+  "The pool average weekly total APY"
+  apy: BigDecimal!
+
+  "Last rewards update timestamp"
+  rewardsTimestamp: BigInt
+}
+
+"""
+StakeWise V2 pool user
+"""
+type V2PoolUser @entity(immutable: false) {
+  "The address of the user"
+  id: ID!
+
+  "The balance of the user"
+  balance: BigInt!
+}
+
+"""
+Vesting Escrow
+"""
+type VestingEscrow @entity(immutable: true) {
+  "The vesting escrow address"
+  id: ID!
+
+  "The vesting escrow token address"
+  token: String!
+
+  "The vesting escrow recipient"
+  recipient: Bytes!
+}
+
+"""
+The OsToken config
+"""
+type OsTokenConfig @entity(immutable: false) {
+  "The ID of the OsTokenConfig"
+  id: ID!
+
+  "The vault osToken LTV percent"
+  ltvPercent: BigInt!
+
+  "The leverage strategy max OsToken minting LTV"
+  leverageMaxMintLtvPercent: BigInt!
+
+  "The vault osToken liquidation threshold percent"
+  liqThresholdPercent: BigInt!
+}
+
+"""
+The OsToken vault exit request
+"""
+type OsTokenExitRequest @entity(immutable: false) {
+  "<Vault ID>-<Exit queue id>"
+  id: ID!
+
+  "The address that can claim the exit"
+  owner: Bytes!
+
+  "The vault where assets are exiting"
+  vault: Vault!
+
+  "The exit request position ticket"
+  positionTicket: BigInt!
+
+  "The processed assets from the exit request. Will be null if the exit request is not processed."
+  exitedAssets: BigInt
+
+  "The total amount of osToken shares exiting"
+  osTokenShares: BigInt!
+
+  "The position's LTV percent"
+  ltv: BigDecimal!
+}
+
+"""
+The Aave supplying and borrowing data
+"""
+type Aave @entity(immutable: false) {
+  "Set to 1"
+  id: ID!
+
+  "The weekly average assets borrow APY"
+  borrowApy: BigDecimal!
+
+  "The list of Aave borrow APY snapshots"
+  borrowApys: [BigDecimal!]!
+
+  "The weekly average OsToken supply APY"
+  supplyApy: BigDecimal!
+
+  "The list of OsToken supply APY snapshots"
+  supplyApys: [BigDecimal!]!
+
+  "The Aave leverage strategy max borrow LTV percent"
+  leverageMaxBorrowLtvPercent: BigInt!
+
+  "The Aave positions in Leveraged strategy"
+  positions: [AavePosition!]! @derivedFrom(field: "aave")
+
+  "osToken current limit"
+  osTokenSupplyCap: BigInt!
+
+  "osToken current supply"
+  osTokenTotalSupplied: BigInt!
+}
+
+"""
+The Aave position in Leverage strategy
+"""
+type AavePosition @entity(immutable: false) {
+  "Set to user address"
+  id: ID!
+
+  "The address of the user"
+  user: Bytes!
+
+  "The Aave instance"
+  aave: Aave!
+
+  "The total amount of supplied assets to Aave"
+  suppliedOsTokenShares: BigInt!
+
+  "The total amount of borrowed assets from Aave"
+  borrowedAssets: BigInt!
+}
+
+"""
+The LeverageStrategy position
+"""
+type LeverageStrategyPosition @entity(immutable: false) {
+  "Set to `vault ID-user address`"
+  id: ID!
+
+  "The proxy address used for the leverage"
+  proxy: Bytes!
+
+  "The address of the user"
+  user: Bytes!
+
+  "The vault used for the leverage"
+  vault: Vault!
+
+  "The total amount of user osToken shares"
+  osTokenShares: BigInt!
+
+  "The total amount of user assets"
+  assets: BigInt!
+
+  "The current borrow LTV percent"
+  borrowLtv: BigDecimal!
+
+  "The percent (in wad) of user's position that is currently exiting"
+  exitingPercent: BigInt!
+
+  "The total amount of user exiting osToken shares"
+  exitingOsTokenShares: BigInt!
+
+  "The total amount of user exiting assets"
+  exitingAssets: BigInt!
+
+  "The unprocessed exit request. Can be null if nothing is exiting."
+  exitRequest: ExitRequest
+
+  "The version of the leverage strategy contract"
+  version: BigInt!
+}
+
+"""
+The snapshot of the allocator state
+"""
+type AllocatorSnapshot @entity(immutable: true) {
+  id: Bytes!
+  timestamp: Timestamp!
+  allocator: Allocator!
+  stakeEarnedAssets: BigInt!
+  boostEarnedAssets: BigInt!
+  earnedAssets: BigInt!
+  totalAssets: BigInt!
+  apy: BigDecimal!
+  ltv: BigDecimal!
+}
+
+"""
+The snapshot of the Vault state
+"""
+type VaultSnapshot @entity(immutable: true) {
+  id: Bytes!
+  timestamp: Timestamp!
+  vault: Vault!
+  earnedAssets: BigInt!
+  totalAssets: BigInt!
+  totalShares: BigInt!
+  apy: BigDecimal!
+  _prevSnapshotTimestamp: Timestamp
+}
+
+"""
+The latest exchange rates
+"""
+type ExchangeRate @entity(immutable: false) {
+  "Always 0"
+  id: ID!
+
+  "The rate of the OsToken to assets (e.g. osETH <-> ETH, osGNO <-> GNO)"
+  osTokenAssetsRate: BigDecimal!
+
+  "The USD rate of the assets (e.g. ETH, GNO)"
+  assetsUsdRate: BigDecimal!
+
+  "The USD rate of the SWISE"
+  swiseUsdRate: BigDecimal!
+
+  "The USD rate of DAI"
+  daiUsdRate: BigDecimal!
+
+  "The USD rate of USDC"
+  usdcUsdRate: BigDecimal!
+
+  "The USD rate of SSV"
+  ssvUsdRate: BigDecimal!
+
+  "The USD rate of OBOL"
+  obolUsdRate: BigDecimal!
+
+  "The USD rate of LYX"
+  lyxUsdRate: BigDecimal!
+
+  "The USD rate of ETH"
+  ethUsdRate: BigDecimal!
+
+  "The USD rate of BTC"
+  btcUsdRate: BigDecimal!
+
+  "The USD rate of Solana"
+  solUsdRate: BigDecimal!
+
+  "The USD rate of SUSDS"
+  susdsUsdRate: BigDecimal!
+
+  "The USD rate of sDAI"
+  sdaiUsdRate: BigDecimal!
+
+  "The USD rate of bCSPX"
+  bcspxUsdRate: BigDecimal!
+
+  "The USD to EUR rate"
+  usdToEurRate: BigDecimal!
+
+  "The USD to GBP rate"
+  usdToGbpRate: BigDecimal!
+
+  "The USD to CNY rate"
+  usdToCnyRate: BigDecimal!
+
+  "The USD to JPY rate"
+  usdToJpyRate: BigDecimal!
+
+  "The USD to KRW rate"
+  usdToKrwRate: BigDecimal!
+
+  "The USD to AUD rate"
+  usdToAudRate: BigDecimal!
+}
+
+"""
+The snapshot of the exchange rates
+"""
+type ExchangeRateSnapshot @entity(timeseries: true) {
+  id: Int8!
+  timestamp: Timestamp!
+  osTokenAssetsRate: BigDecimal!
+  assetsUsdRate: BigDecimal!
+  swiseUsdRate: BigDecimal!
+  daiUsdRate: BigDecimal!
+  ssvUsdRate: BigDecimal!
+  obolUsdRate: BigDecimal!
+  lyxUsdRate: BigDecimal!
+  ethUsdRate: BigDecimal!
+  btcUsdRate: BigDecimal!
+  solUsdRate: BigDecimal!
+  susdsUsdRate: BigDecimal!
+  sdaiUsdRate: BigDecimal!
+  bcspxUsdRate: BigDecimal!
+  usdcUsdRate: BigDecimal!
+  usdToEurRate: BigDecimal!
+  usdToGbpRate: BigDecimal!
+  usdToCnyRate: BigDecimal!
+  usdToJpyRate: BigDecimal!
+  usdToKrwRate: BigDecimal!
+  usdToAudRate: BigDecimal!
+}
+
+"""
+The aggregation of the ExchangeRate snapshots
+"""
+type ExchangeRateStats @aggregation(intervals: ["day"], source: "ExchangeRateSnapshot") {
+  id: Int8!
+  timestamp: Timestamp!
+  osTokenAssetsRate: BigDecimal! @aggregate(fn: "last", arg: "osTokenAssetsRate")
+  assetsUsdRate: BigDecimal! @aggregate(fn: "last", arg: "assetsUsdRate")
+  swiseUsdRate: BigDecimal! @aggregate(fn: "last", arg: "swiseUsdRate")
+  daiUsdRate: BigDecimal! @aggregate(fn: "last", arg: "daiUsdRate")
+  ssvUsdRate: BigDecimal! @aggregate(fn: "last", arg: "ssvUsdRate")
+  obolUsdRate: BigDecimal! @aggregate(fn: "last", arg: "obolUsdRate")
+  lyxUsdRate: BigDecimal! @aggregate(fn: "last", arg: "lyxUsdRate")
+  ethUsdRate: BigDecimal! @aggregate(fn: "last", arg: "ethUsdRate")
+  btcUsdRate: BigDecimal! @aggregate(fn: "last", arg: "btcUsdRate")
+  solUsdRate: BigDecimal! @aggregate(fn: "last", arg: "solUsdRate")
+  susdsUsdRate: BigDecimal! @aggregate(fn: "last", arg: "susdsUsdRate")
+  sdaiUsdRate: BigDecimal! @aggregate(fn: "last", arg: "sdaiUsdRate")
+  bcspxUsdRate: BigDecimal! @aggregate(fn: "last", arg: "bcspxUsdRate")
+  usdcUsdRate: BigDecimal! @aggregate(fn: "last", arg: "usdcUsdRate")
+  usdToEurRate: BigDecimal! @aggregate(fn: "last", arg: "usdToEurRate")
+  usdToGbpRate: BigDecimal! @aggregate(fn: "last", arg: "usdToGbpRate")
+  usdToCnyRate: BigDecimal! @aggregate(fn: "last", arg: "usdToCnyRate")
+  usdToJpyRate: BigDecimal! @aggregate(fn: "last", arg: "usdToJpyRate")
+  usdToKrwRate: BigDecimal! @aggregate(fn: "last", arg: "usdToKrwRate")
+  usdToAudRate: BigDecimal! @aggregate(fn: "last", arg: "usdToAudRate")
+}
+
+"Uniswap V3 pool data"
+type UniswapPool @entity(immutable: false) {
+  "The address of the pool"
+  id: ID!
+
+  "The address of token0"
+  token0: Bytes!
+
+  "The address of token1"
+  token1: Bytes!
+
+  "Fee tier"
+  feeTier: BigInt!
+
+  "The current price tracked"
+  sqrtPrice: BigInt!
+
+  "The current tick"
+  tick: Int
+
+  "The pool positions"
+  positions: [UniswapPosition!]! @derivedFrom(field: "pool")
+}
+
+"Positions created through UniswapPositionManager"
+type UniswapPosition @entity(immutable: false) {
+  "NFT Token ID"
+  id: ID!
+
+  "The address of the position owner"
+  owner: Bytes!
+
+  "The address of the pool"
+  pool: UniswapPool!
+
+  "The amount of token0"
+  amount0: BigInt!
+
+  "The amount of token1"
+  amount1: BigInt!
+
+  "Lower tick of the position"
+  tickLower: Int!
+
+  "Upper tick of the position"
+  tickUpper: Int!
+
+  "Total liquidity of the position"
+  liquidity: BigInt!
+}
+
+"Stores current active distributions and active distributors"
+type Distributor @entity(immutable: false) {
+  "Set to 1"
+  id: ID!
+
+  "The list of active distributions IDs"
+  activeDistributionIds: [String!]!
+
+  "The list of active distributor addresses"
+  activeDistributors: [Bytes!]!
+
+  "The list of distributor claims"
+  claims: [DistributorClaim!]! @derivedFrom(field: "distributor")
+}
+
+enum DistributionType {
+  VAULT
+  SWISE_ASSET_UNI_POOL
+  OS_TOKEN_USDC_UNI_POOL
+  LEVERAGE_STRATEGY
+  UNKNOWN
+}
+
+"The periodic distribution of additional incentives"
+type PeriodicDistribution @entity(immutable: false) {
+  "Set to `transaction hash-log index`"
+  id: ID!
+
+  "The distribution hash"
+  hash: Bytes!
+
+  "The distribution type"
+  distributionType: DistributionType!
+
+  "The extra data used to identify the distribution"
+  data: Bytes!
+
+  "The address of the token that is distributed"
+  token: Bytes!
+
+  "The amount of tokens that is distributed"
+  amount: BigInt!
+
+  "The average weekly apy of the distribution"
+  apy: BigDecimal!
+
+  "The timestamp when the distribution starts"
+  startTimestamp: BigInt!
+
+  "The timestamp when the distribution ends"
+  endTimestamp: BigInt!
+}
+
+"The distributor reward"
+type DistributorReward @entity(immutable: false) {
+  "Set to `token address-user address`"
+  id: ID!
+
+  "The address of the user"
+  user: Bytes!
+
+  "The address of the token"
+  token: Bytes!
+
+  "The cumulative reward accumulated by user"
+  cumulativeAmount: BigInt!
+}
+
+"The distributor claim"
+type DistributorClaim @entity(immutable: false) {
+  "Set to `user address`"
+  id: ID!
+
+  "The distributor"
+  distributor: Distributor!
+
+  "The address of the user"
+  user: Bytes!
+
+  "An array of addresses of the tokens"
+  tokens: [Bytes!]!
+
+  "An array of cumulative amounts of the tokens"
+  cumulativeAmounts: [BigInt!]!
+
+  "An array of unclaimed amounts of the tokens"
+  unclaimedAmounts: [BigInt!]!
+
+  "The Merkle tree proof"
+  proof: [String!]!
+}
+
+"The distributor claimed amounts"
+type DistributorClaimedAmount @entity(immutable: false) {
+  "Set to `token-address-user address`"
+  id: ID!
+
+  "The total amount of the token claimed by the user"
+  cumulativeClaimedAmount: BigInt!
+}
+
+"The user type info: is it a contract or an Externally Owned Account (EOA)."
+type UserIsContract @entity(immutable: true) {
+  "The address value."
+  id: Bytes!
+
+  "Indicates whether the address is a contract."
+  isContract: Boolean!
+}
+
+"The network validator"
+type NetworkValidator @entity(immutable: true) {
+  "Set to validator public key"
+  id: Bytes!
+}
+
+"The checkpoint to track periodic synchronization"
+type Checkpoint @entity(immutable: false) {
+  "Set to `sync checkpoint ID`"
+  id: Bytes!
+  "The timestamp of the checkpoint"
+  timestamp: BigInt!
+}

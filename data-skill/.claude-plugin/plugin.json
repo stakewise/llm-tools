@@ -1,0 +1,35 @@
+{
+  "name": "stakewise-data-query",
+  "version": "0.1.0",
+  "description": "Ask natural-language questions in any language about StakeWise V3 staking data — APY, vault TVL, your stake or earnings, exit-queue ETA, osETH/osGNO mint capacity or health factor, boost position, leverage borrow LTV, distributor (merkle) claims, vesting unlocks, transaction history, exchange rates, or sub-vaults. Read-only; talks to public StakeWise subgraphs and backend GraphQL on Mainnet, Gnosis, Hoodi via WebFetch / curl; uses public RPC for on-chain conversions. No SDK install or local server required.",
+  "author": {
+    "name": "Stakewise Team",
+    "email": "tsudmi@stakewise.io"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/stakewise/llm-tools",
+  "repository": "https://github.com/stakewise/llm-tools",
+  "keywords": [
+    "stakewise",
+    "v3",
+    "subgraph",
+    "graphql",
+    "data",
+    "apy",
+    "osETH",
+    "osGNO",
+    "vault",
+    "exit-queue",
+    "boost",
+    "leverage",
+    "read-only",
+    "end-user",
+    "llm"
+  ],
+  "metadata": {
+    "subgraphSchemaCommit": "fc2a4ab4d21ce41199783e6a432fc063a6ceabf1",
+    "subgraphSchemaDate": "2026-05-12",
+    "subgraphBranch": "main",
+    "note": "Prod (https://graphs.stakewise.io/.../stakewise/prod) tracks the `main` branch. Some fields in source schema (e.g. Vault.subVaultsCount, Network.collateralizedVaultsCount) may not yet be deployed to prod — verify via introspection before querying. The `v5-release` branch contains future fields (parentMetaVaults, subVaultsRegistry, subVaultsCurator, …) that are NOT on prod."
+  }
+}
