@@ -70,13 +70,13 @@ When **filtering** prefer `where: { vault: "...", address: "..." }` over `id: ".
 
 ## Dust positions (< 0.0001 ETH/GNO) — UI hides them, subgraph keeps them
 
-Frontend uses `minimalAmount = 100_000_000_000_000n` wei (= 0.0001 ETH/GNO) as the cut-off. Any balance / mint / reward below this threshold is **displayed as 0** in the app, even though the subgraph stores the real value. Source: `frontwise/packages/sw-helpers/constants/blockchain.ts` and usage in `apps/web/src/hooks/vault/useUser/useBalances/`.
+Frontend uses `minimalAmount = 100_000_000_000_000n` wei (= 0.0001 ETH/GNO) as the cut-off. Any balance / mint / reward below this threshold is **displayed as 0** in the app, even though the subgraph stores the real value. Source: `frontwise/packages/sw-utils/constants/blockchain.ts` and usage in `apps/web/src/hooks/vault/useUser/useBalances/`.
 
 For the skill: surface the real value, but annotate when < 0.0001 — "you have N wei (~0.00009 ETH); the app rounds this to 0 for display but the protocol still tracks it." Same applies to dust positions appearing in the Deposits tab as `Deposit: 0.00` while subgraph shows assets = 1 wei (we saw this on `0x9eeb6be...` and `H2O Nodes (DEPRECATED)` Gnosis cards).
 
-## Hidden vaults — TWO sources
+## Hidden vaults — backend flag is the source of truth
 
-The skill already documents backend `vaults(blacklisted: true)`. The frontend **also** has a **hardcoded** client-side hidden list at `frontwise/apps/web/src/helpers/hiddenVaults.ts:5-17` for specific meta-vaults that aren't backend-blacklisted but the app deliberately doesn't surface. Subgraph indexes them; skill can answer about them; warn the user if you suspect the address is in this list.
+The frontend previously had a client-side hardcoded hidden-meta-vaults list at `apps/web/src/helpers/hiddenVaults.ts`, but **that file was removed** (frontwise commit `6452f76e` — `remove hidden metaVault logic`). The only "hidden" signal now is the backend `vaults(blacklisted: true)` / `vaults(hidden: true)` query — see how-to in the "Subgraph vs backend" section below. If a user complains "I can see my exit queue in app for one vault but not another", check the backend flag for the missing one.
 
 ## Lifetime earnings can be NEGATIVE
 
@@ -242,11 +242,12 @@ Ethereum function selectors are the **first 4 bytes of keccak-256** of the canon
 
 ## Backend `vaults(blacklisted)` is the only authoritative hidden-vault detector
 
-The subgraph indexes every vault. The UI hides three categories independently — only the **backend GraphQL** exposes them:
+The subgraph indexes every vault. The UI hides two categories — only the **backend GraphQL** exposes them:
 
 1. `blacklisted: true` — vault detail page redirects to `/vaults`; this is what `app.stakewise.io` calls "Invalid Vault".
 2. `hidden: true` — vault is omitted from the marketplace list but the detail page may still open.
-3. Hardcoded `hiddenVaults.ts` list — bundled in the frontend repo, not in any data source. Limited to a few meta-vault constructions the app deliberately doesn't display. Subgraph + backend both still index them.
+
+(There used to be a third source — a hardcoded `apps/web/src/helpers/hiddenVaults.ts` list shipped in the frontend bundle — but it was removed in frontwise commit `6452f76e`. The backend flags above are now the sole truth.)
 
 When the user reports "the app doesn't show this vault", run `vaults(id: "0x...") { blacklisted hidden verified }` on the backend before suspecting a data-pipeline bug.
 
