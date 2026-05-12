@@ -1,0 +1,83 @@
+name: Skill lint (PR check, advisory)
+
+# Lightweight checks on PRs touching skill content. Reports failures via PR
+# comment but is NOT a required-status check — does not block merges. Maintainers
+# decide whether to act on warnings.
+
+on:
+  pull_request:
+    paths:
+      - 'data-skill/**'
+      - 'mcp-server/skills/**'
+      - 'scripts/lint-skill-frontmatter.mjs'
+      - '.github/workflows/lint-skills.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: skill-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Skill frontmatter + Mainnet smoke
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: '24'
+
+      - name: Install jq
+        run: sudo apt-get update -y && sudo apt-get install -y --no-install-recommends jq
+
+      - name: Validate SKILL.md frontmatter + plugin.json + schema-snapshot header
+        id: frontmatter
+        continue-on-error: true
+        run: node scripts/lint-skill-frontmatter.mjs
+
+      - name: Verify Mainnet cookbook queries
+        id: smoke
+        continue-on-error: true
+        run: NETWORK=mainnet bash scripts/verify-queries.sh
+
+      - name: Comment on PR if anything failed
+        if: steps.frontmatter.outcome == 'failure' || steps.smoke.outcome == 'failure'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          script: |
+            const { owner, repo } = context.repo
+            const issue_number = context.payload.pull_request.number
+            const frontmatterFailed = '${{ steps.frontmatter.outcome }}' === 'failure'
+            const smokeFailed = '${{ steps.smoke.outcome }}' === 'failure'
+            const lines = [
+              '## Skill lint — advisory check',
+              '',
+              'One or more checks failed. **This does not block merging** — review at your discretion.',
+              '',
+            ]
+            if (frontmatterFailed) {
+              lines.push('- ❗ `lint-skill-frontmatter.mjs` failed (SKILL.md frontmatter / plugin.json / snapshot header mismatch)')
+            }
+            if (smokeFailed) {
+              lines.push('- ❗ `verify-queries.sh` failed on Mainnet (cookbook queries or RPC liveness)')
+            }
+            lines.push('')
+            lines.push(`Workflow log: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`)
+            await github.rest.issues.createComment({
+              owner, repo, issue_number, body: lines.join('\n')
+            })
+
+      # Final step succeeds regardless of upstream `continue-on-error` results so
+      # this workflow never sets a failing required-status on the PR.
+      - name: Summarize
+        run: |
+          echo "frontmatter: ${{ steps.frontmatter.outcome }}"
+          echo "smoke:       ${{ steps.smoke.outcome }}"

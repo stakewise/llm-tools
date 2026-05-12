@@ -1,0 +1,20 @@
+{
+  "name": "stakewise-llm-tools",
+  "owner": {
+    "name": "Stakewise Team",
+    "email": "tsudmi@stakewise.io"
+  },
+  "description": "StakeWise tools for AI assistants — MCP server (npm) and standalone data-query skill.",
+  "plugins": [
+    {
+      "name": "stakewise-data-query",
+      "source": "./data-skill",
+      "description": "Ask questions in any language about StakeWise V3 (APY, your stake, exit-queue ETA, osETH health factor, boost LTV, distributor claims, vestings, transaction history). Read-only. Queries public StakeWise subgraphs and backend GraphQL on Mainnet, Gnosis, Hoodi; uses public RPC nodes for on-chain conversions. Always responds in the user's language. No SDK install, no local server.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Stakewise Team"
+      },
+      "license": "MIT"
+    }
+  ]
+}

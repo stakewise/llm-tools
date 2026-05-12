@@ -8,9 +8,9 @@
     "url": "git+https://github.com/stakewise/llm-tools.git"
   },
   "type": "module",
-  "main": "index.ts",
+  "main": "mcp-server/index.ts",
   "bin": {
-    "stakewise-llm-tools": "./mcp.ts"
+    "stakewise-llm-tools": "./mcp-server/mcp.ts"
   },
   "license": "MIT",
   "engines": {
@@ -20,7 +20,10 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "debug:server": "npx tsx debug-server.ts"
+    "debug:server": "npx tsx mcp-server/debug-server.ts",
+    "build:llm-context": "node scripts/build-llm-context.mjs",
+    "lint:skills": "node scripts/lint-skill-frontmatter.mjs",
+    "verify:queries": "bash scripts/verify-queries.sh"
   },
   "keywords": [
     "mcp",
@@ -42,10 +45,10 @@
       "openclawVersion": "2026.4.6"
     },
     "extensions": [
-      "./index.ts"
+      "./mcp-server/index.ts"
     ],
     "skills": [
-      "./skills"
+      "./mcp-server/skills"
     ]
   },
   "peerDependencies": {
@@ -57,6 +60,7 @@
     "eslint": "9.28.0",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-import-x": "4.16.2",
+    "globals": "^17.6.0",
     "typescript": "6.0.2",
     "typescript-eslint": "8.58.1",
     "vitest": "3.0.0"

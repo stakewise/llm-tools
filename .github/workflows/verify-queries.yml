@@ -1,0 +1,89 @@
+name: Drift check (daily, advisory)
+
+# Daily detection of drift between the data-skill's bundled assumptions and
+# their upstream sources. NEVER blocks a merge — opens / updates issues so
+# maintainers can react asynchronously.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # 06:00 UTC every day
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: drift-check-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    name: Drift detection
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: '24'
+
+      - name: Install jq
+        run: sudo apt-get update -y && sudo apt-get install -y --no-install-recommends jq
+
+      # ------- Cookbook queries against prod subgraph + RPC liveness -------
+      - name: Verify cookbook queries
+        id: verify
+        continue-on-error: true
+        run: bash scripts/verify-queries.sh
+
+      - name: Open issue on query/RPC failure
+        if: steps.verify.outcome == 'failure'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          script: |
+            const { owner, repo } = context.repo
+            const label = 'query-broken'
+            const title = 'Daily verify-queries detected failing queries / RPC liveness'
+            const body = `The daily \`verify-queries.yml\` workflow detected failures. Re-run locally and inspect output:\n\n\`\`\`bash\nbash scripts/verify-queries.sh\n\`\`\`\n\nFull workflow log: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
+            const { data: existing } = await github.rest.issues.listForRepo({
+              owner, repo, state: 'open', labels: label
+            })
+            if (existing.length === 0) {
+              await github.rest.issues.create({ owner, repo, title, body, labels: [ label ] })
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: existing[0].number, body })
+            }
+
+      # ------- Schema drift vs v3-subgraph main -------
+      - name: Check schema drift
+        id: schema
+        continue-on-error: true
+        run: bash scripts/snapshot-subgraph-schema.sh > /tmp/schema-diff.txt
+
+      - name: Open issue on schema drift
+        if: steps.schema.outcome == 'failure'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        env:
+          DIFF_PATH: /tmp/schema-diff.txt
+        with:
+          script: |
+            const fs = require('fs')
+            const { owner, repo } = context.repo
+            const label = 'schema-drift'
+            const title = 'Subgraph schema has drifted from bundled snapshot'
+            const diff = fs.readFileSync(process.env.DIFF_PATH, 'utf8').slice(0, 60000)
+            const body = `The bundled \`schema-snapshot.graphql\` no longer matches \`stakewise/v3-subgraph@main\`.\n\nDiff (truncated to 60 kB):\n\n\`\`\`diff\n${diff}\n\`\`\`\n\nNext steps:\n1. Read upstream changes: https://github.com/stakewise/v3-subgraph/commits/main\n2. Sync locally: \`bash scripts/snapshot-subgraph-schema.sh --update\`\n3. Update \`data-skill/.claude-plugin/plugin.json\` \`metadata.subgraphSchemaCommit\`\n4. Review \`references/entities.md\` and \`references/cookbook.md\` for affected fields\n5. Bump \`data-skill\` version (patch for cosmetic, minor for new fields, major for breaking)\n\nFull workflow log: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
+            const { data: existing } = await github.rest.issues.listForRepo({
+              owner, repo, state: 'open', labels: label
+            })
+            if (existing.length === 0) {
+              await github.rest.issues.create({ owner, repo, title, body, labels: [ label ] })
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: existing[0].number, body })
+            }
+
