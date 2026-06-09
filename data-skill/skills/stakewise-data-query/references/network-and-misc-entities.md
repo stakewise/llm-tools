@@ -273,7 +273,7 @@ Response fields:
 }
 ```
 
-- `attestationsEarned: Wei`, `attestationsMissed: Wei` — weighted attestation sums (1e18-scaled). Attestation effectiveness = `earned / (earned + missed)` (e.g. `56.6e18 / (56.6e18 + 0.11e18)` ≈ 99.8%).
+- `attestationsEarned: Wei`, `attestationsMissed: Wei` — weighted attestation sums, 1e18-scaled — dimensionless performance weights, NOT ETH amounts despite the `Wei` type; use only as the ratio below. Attestation effectiveness = `earned / (earned + missed)` (e.g. `56.6e18 / (56.6e18 + 0.11e18)` ≈ 99.8%).
 - `proposedBlockCount: Int`, `missedBlockCount: Int` — plain block counts.
 
 The argument is direct (`vaultAddress`, lowercase), not a `where`.

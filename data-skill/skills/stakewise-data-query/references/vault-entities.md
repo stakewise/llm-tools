@@ -67,7 +67,7 @@ Entities that describe a vault — its identity, performance, access controls, M
 Identity and metadata:
 - `id: ID!` — vault address, lowercase hex.
 - `addressString: String!` — case-preserving copy of the address for full-text search.
-- `displayName: String` — human name from IPFS metadata; null if not set.
+- `displayName: String` — human-readable name from IPFS metadata; null if not set.
 - `description: String`
 - `imageUrl: String`
 - `tokenName: String` — null for non-ERC20 vaults.

@@ -62,7 +62,7 @@ To convert `balance` (osToken shares) to assets, multiply by `ExchangeRate.osTok
 
 - `id: ID!` — config id: a small integer for a shared template (`"1"`, `"2"`), or the vault address for a per-vault override.
 - `ltvPercent: BigInt!` — max LTV a regular user can mint at. Typically `"900000000000000000"` = 90%; special vaults (e.g. Genesis) use ~99.99%.
-- `leverageMaxMintLtvPercent: BigInt!` — the mint LTV the boost (leverage) strategy is allowed to reach. **`0` means boost is not available on this vault**; otherwise it is *higher* than `ltvPercent` (e.g. `"995000000000000000"` = 99.5%), because the strategy mints close to the limit — it is not a stricter cap.
+- `leverageMaxMintLtvPercent: BigInt!` — the mint LTV the boost (leverage) strategy is allowed to reach. **`0` means boost is not available on this vault**; otherwise it is *higher* than `ltvPercent` (e.g. `"995000000000000000"` = 99.5%), because the leverage strategy may mint closer to the limit than a regular user — it raises the ceiling, it does not tighten it.
 - `liqThresholdPercent: BigInt!` — osToken liquidation threshold. Typically `"920000000000000000"` = 92%. The sentinel `"18446744073709551615"` (2^64−1) means **liquidation is disabled** for that vault (e.g. Genesis) — surface "no osToken liquidation", do NOT render it as ~1844%.
 
 ### osTokens (singleton)

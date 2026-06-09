@@ -1,7 +1,8 @@
 ---
 name: stakewise-data-query
 description: Use when the user asks a natural-language question (in any language) about StakeWise V3 staking data — APY, vault TVL, their stake or earnings, exit-queue ETA, osETH/osGNO mint capacity or health factor, boost position, leverage borrow LTV, distributor (merkle) claims, vesting positions, transaction history, exchange rates, or sub-vaults. Read-only. Talks to the public StakeWise subgraphs and backend GraphQL on Mainnet and Gnosis via WebFetch / curl. No SDK install or local server required. Always answer in the user's language. Skip when @stakewise/v3-sdk is imported in the project — that's a developer use case handled by a sibling skill.
-version: 0.2.0
+metadata:
+  version: "0.2.0"
 ---
 
 # StakeWise data-query skill

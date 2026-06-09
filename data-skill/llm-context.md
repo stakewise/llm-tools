@@ -1,7 +1,8 @@
 ---
 name: stakewise-data-query
 description: Use when the user asks a natural-language question (in any language) about StakeWise V3 staking data — APY, vault TVL, their stake or earnings, exit-queue ETA, osETH/osGNO mint capacity or health factor, boost position, leverage borrow LTV, distributor (merkle) claims, vesting positions, transaction history, exchange rates, or sub-vaults. Read-only. Talks to the public StakeWise subgraphs and backend GraphQL on Mainnet and Gnosis via WebFetch / curl. No SDK install or local server required. Always answer in the user's language. Skip when @stakewise/v3-sdk is imported in the project — that's a developer use case handled by a sibling skill.
-version: 0.2.0
+metadata:
+  version: "0.2.0"
 ---
 
 # StakeWise data-query skill
@@ -323,7 +324,7 @@ Entities that describe a vault — its identity, performance, access controls, M
 Identity and metadata:
 - `id: ID!` — vault address, lowercase hex.
 - `addressString: String!` — case-preserving copy of the address for full-text search.
-- `displayName: String` — human name from IPFS metadata; null if not set.
+- `displayName: String` — human-readable name from IPFS metadata; null if not set.
 - `description: String`
 - `imageUrl: String`
 - `tokenName: String` — null for non-ERC20 vaults.
@@ -725,7 +726,7 @@ The osToken LTV here is one of two LTVs in StakeWise; the other (Aave borrow LTV
 - `exitedAssets: BigInt!` — already withdrawable in wei.
 - `exitQueueIndex: BigInt` — `null` until claimable.
 - `timestamp: BigInt!` — Unix seconds when queued.
-- `withdrawalTimestamp: BigInt` — backend-estimated ETA in Unix seconds; nullable. When null, fall back to `Vault.avgExitQueueLength` (backend) or backend `exitStats.duration` for a network-wide average.
+- `withdrawalTimestamp: BigInt` — backend-estimated Unix-seconds timestamp for when it becomes claimable; nullable. When null, fall back to `Vault.avgExitQueueLength` (backend) or backend `exitStats.duration` for a network-wide average.
 - `isClaimable: Boolean!`
 - `isClaimed: Boolean!`
 
@@ -793,7 +794,7 @@ To convert `balance` (osToken shares) to assets, multiply by `ExchangeRate.osTok
 
 - `id: ID!` — config id: a small integer for a shared template (`"1"`, `"2"`), or the vault address for a per-vault override.
 - `ltvPercent: BigInt!` — max LTV a regular user can mint at. Typically `"900000000000000000"` = 90%; special vaults (e.g. Genesis) use ~99.99%.
-- `leverageMaxMintLtvPercent: BigInt!` — the mint LTV the boost (leverage) strategy is allowed to reach. **`0` means boost is not available on this vault**; otherwise it is *higher* than `ltvPercent` (e.g. `"995000000000000000"` = 99.5%), because the strategy mints close to the limit — it is not a stricter cap.
+- `leverageMaxMintLtvPercent: BigInt!` — the mint LTV the boost (leverage) strategy is allowed to reach. **`0` means boost is not available on this vault**; otherwise it is *higher* than `ltvPercent` (e.g. `"995000000000000000"` = 99.5%), because the leverage strategy may mint closer to the limit than a regular user — it raises the ceiling, it does not tighten it.
 - `liqThresholdPercent: BigInt!` — osToken liquidation threshold. Typically `"920000000000000000"` = 92%. The sentinel `"18446744073709551615"` (2^64−1) means **liquidation is disabled** for that vault (e.g. Genesis) — surface "no osToken liquidation", do NOT render it as ~1844%.
 
 ### osTokens (singleton)
@@ -1663,7 +1664,7 @@ Response fields:
 }
 ```
 
-- `attestationsEarned: Wei`, `attestationsMissed: Wei` — weighted attestation sums (1e18-scaled). Attestation effectiveness = `earned / (earned + missed)` (e.g. `56.6e18 / (56.6e18 + 0.11e18)` ≈ 99.8%).
+- `attestationsEarned: Wei`, `attestationsMissed: Wei` — weighted attestation sums, 1e18-scaled — dimensionless performance weights, NOT ETH amounts despite the `Wei` type; use only as the ratio below. Attestation effectiveness = `earned / (earned + missed)` (e.g. `56.6e18 / (56.6e18 + 0.11e18)` ≈ 99.8%).
 - `proposedBlockCount: Int`, `missedBlockCount: Int` — plain block counts.
 
 The argument is direct (`vaultAddress`, lowercase), not a `where`.
@@ -1769,7 +1770,7 @@ A one-screen cheat sheet for the data-query skill. Scan this **before** doing ma
 | `Aave.leverageMaxBorrowLtvPercent` | **18-decimal fixed point** | `"929999998000000000"` ÷ 1e18 = 0.93 = 93% | Divide by 1e18 → 0..1 ratio. Different scale from `feePercent` and `OsTokenConfig.*Percent`. |
 | `rate` (Vault, V2Pool) | wei per 1e18 shares | `"1050000000000000000"` = 1.05 assets per share | `userAssets = userShares × rate / 1e18`. |
 | `ExchangeRate.osTokenAssetsRate` | decimal string | `"0.96"` = 1 osETH share is worth 0.96 ETH | Multiply osToken share count by rate. |
-| `ExchangeRate.assetsUsdRate`, `*UsdRate` | decimal string | `"1850.5"` = $1850.50 per 1 unit | Multiply asset amount (in human units after wei division) by rate. |
+| `ExchangeRate.assetsUsdRate`, `*UsdRate` | decimal string | `"1850.5"` = $1850.50 per 1 ETH (GNO on Gnosis) | Multiply asset amount (in human units after wei division) by rate. |
 | `Checkpoint.timestamp`, `ExitRequest.timestamp`, `ExitRequest.withdrawalTimestamp`, `AllocatorAction.createdAt`, `Vault.createdAt`/`rewardsTimestamp`/`lastFeeUpdateTimestamp`, `PeriodicDistribution.startTimestamp`/`endTimestamp` | **Unix seconds** | `1778570771` | Compare with `Math.floor(Date.now() / 1000)`. |
 | `VaultSnapshot.timestamp`, `AllocatorSnapshot.timestamp`, `ExchangeRateSnapshot.timestamp`, `ExchangeRateStats.timestamp` | **microseconds** (Unix seconds × 1e6) | `1778457600000000` = 2026-05-11 00:00:00 UTC | Snapshots are at exact UTC 00:00 daily. For range filters: `timestamp_gte: (Math.floor(Date.now()/1000) - N*86400) * 1e6`. |
 | `chainId` | integer | `1`, `100`, `560048` | Plain JS number. |

@@ -234,6 +234,6 @@ The osToken LTV here is one of two LTVs in StakeWise; the other (Aave borrow LTV
 - `exitedAssets: BigInt!` — already withdrawable in wei.
 - `exitQueueIndex: BigInt` — `null` until claimable.
 - `timestamp: BigInt!` — Unix seconds when queued.
-- `withdrawalTimestamp: BigInt` — backend-estimated ETA in Unix seconds; nullable. When null, fall back to `Vault.avgExitQueueLength` (backend) or backend `exitStats.duration` for a network-wide average.
+- `withdrawalTimestamp: BigInt` — backend-estimated Unix-seconds timestamp for when it becomes claimable; nullable. When null, fall back to `Vault.avgExitQueueLength` (backend) or backend `exitStats.duration` for a network-wide average.
 - `isClaimable: Boolean!`
 - `isClaimed: Boolean!`
