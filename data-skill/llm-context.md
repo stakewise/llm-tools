@@ -76,6 +76,8 @@ Response shape: `{ "data": { ... } }`; errors arrive as `{ "errors": [ ... ] }` 
 }
 ```
 
+**Singular vs plural — a silent trap.** `vaults(id: …)` (plural with a direct `id` arg) is **backend-only**. The subgraph's `vaults` has no `id` argument: passing one is **silently ignored** — you get the whole vault list back with no error, so reading the "first" result gives a wrong vault. A single-vault subgraph read MUST use `vault(id: …)` (singular) or `vaults(where: { id: … })`. Subgraph-only Vault fields such as `allocatorMaxBoostApy`, `apy`, `score` therefore come via `vault(id: …)` — never `vaults(id: …)`.
+
 ### Source of truth for URLs
 
 If anything above looks stale, the canonical endpoint list is the StakeWise SDK docs at `https://docs.stakewise.io/sdk/endpoints` (source: `@stakewise/v3-sdk` `documentation/endpoints.md`). Note both the primary host (`graphs.stakewise.io`) and the replica fallback host (`graphs-replica.stakewise.io`) serve the **`/prod`** deployment; the `/stage` path on either host is a separate non-production deployment — never use it for user answers.
