@@ -1,0 +1,10 @@
+{
+  "name": "stakewise-data-query",
+  "version": "0.1.0",
+  "private": true,
+  "description": "StakeWise data-query skill for OpenClaw — read-only questions over the public StakeWise subgraphs + backend GraphQL.",
+  "type": "module",
+  "openclaw": {
+    "extensions": ["./index.ts"]
+  }
+}

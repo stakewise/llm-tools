@@ -1,0 +1,11 @@
+{
+  "id": "stakewise-data-query",
+  "name": "StakeWise Data Query",
+  "description": "Ask plain-English questions about StakeWise V3 staking data — APY, vault TVL, your stake or earnings, exit-queue ETA, osETH/osGNO mint capacity or health factor, boost/leverage LTV, distributor (merkle) claims, vesting, exchange rates, sub-vaults. Read-only; the model queries the public StakeWise subgraphs + backend GraphQL on Mainnet and Gnosis via its fetch/exec tools. No SDK or local server.",
+  "skills": ["./skills"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
