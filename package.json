@@ -21,9 +21,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "debug:server": "npx tsx mcp-server/debug-server.ts",
-    "build:llm-context": "node scripts/build-llm-context.mjs",
-    "lint:skills": "node scripts/lint-skill-frontmatter.mjs",
-    "verify:queries": "bash scripts/verify-queries.sh"
+    "build:skill": "node scripts/build-skill.js",
+    "prepare": "husky"
   },
   "keywords": [
     "mcp",
@@ -61,6 +60,7 @@
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-import-x": "4.16.2",
     "globals": "^17.6.0",
+    "husky": "9.1.7",
     "typescript": "6.0.2",
     "typescript-eslint": "8.58.1",
     "vitest": "3.0.0"
