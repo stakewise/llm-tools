@@ -1,0 +1,21 @@
+{
+  "name": "stakewise-data-query",
+  "version": "0.1.0",
+  "description": "Ask natural-language questions in any language about StakeWise V3 staking data on Mainnet and Gnosis — APY, vault TVL, your stake or earnings, exit-queue ETA, osETH/osGNO mint capacity or health factor, boost position, leverage borrow LTV, distributor claims, vesting positions, transaction history, exchange rates, or sub-vaults. Read-only; talks to public StakeWise subgraphs and backend GraphQL via WebFetch / curl. No SDK install or local server required.",
+  "author": {
+    "name": "Stakewise Team",
+    "email": "tsudmi@stakewise.io"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/stakewise/llm-tools",
+  "repository": "https://github.com/stakewise/llm-tools",
+  "keywords": [
+    "stakewise",
+    "v3",
+    "staking",
+    "oseth",
+    "osgno",
+    "vault",
+    "llm"
+  ]
+}

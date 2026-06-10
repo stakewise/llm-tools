@@ -17,7 +17,7 @@ import {
 } from './utils/methods'
 import type { ResponseInput, ResponseFn } from './utils/types'
 
-import { version } from './package.json'
+import { version } from '../package.json'
 
 
 const callHandler = (

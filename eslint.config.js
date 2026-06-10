@@ -1,4 +1,5 @@
 import js from '@eslint/js'
+import globals from 'globals'
 import tsEslint from 'typescript-eslint'
 import importPlugin from 'eslint-plugin-import'
 import { globalIgnores } from 'eslint/config'
@@ -7,6 +8,12 @@ import { globalIgnores } from 'eslint/config'
 export default [
   js.configs.recommended,
   ...tsEslint.configs.recommended,
+  {
+    files: [ 'scripts/**/*.{js,mjs,cjs}' ],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
   {
     files: [ '**/*.{js,ts}' ],
     plugins: {

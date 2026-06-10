@@ -42,6 +42,12 @@ importers:
       eslint-plugin-import-x:
         specifier: 4.16.2
         version: 4.16.2(@typescript-eslint/utils@8.58.1(eslint@9.28.0(jiti@2.6.1))(typescript@6.0.2))(eslint-import-resolver-node@0.3.10)(eslint@9.28.0(jiti@2.6.1))
+      globals:
+        specifier: ^17.6.0
+        version: 17.6.0
+      husky:
+        specifier: 9.1.7
+        version: 9.1.7
       typescript:
         specifier: 6.0.2
         version: 6.0.2
@@ -2805,6 +2811,10 @@ packages:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
     engines: {node: '>=18'}
 
+  globals@17.6.0:
+    resolution: {integrity: sha512-sepffkT8stwnIYbsMBpoCHJuJM5l98FUF2AnE07hfvE0m/qp3R586hw4jF4uadbhvg1ooIdzuu7CsfD2jzCaNA==}
+    engines: {node: '>=18'}
+
   globalthis@1.0.4:
     resolution: {integrity: sha512-DpLKbNU4WylpxJykQujfCcwYWiV/Jhm50Goo0wrVILAv5jOr9d+H+UR3PhSCD2rCCEIg0uc+G+muBTwD54JhDQ==}
     engines: {node: '>= 0.4'}
@@ -2910,6 +2920,11 @@ packages:
   https-proxy-agent@9.0.0:
     resolution: {integrity: sha512-/MVmHp58WkOypgFhCLk4fzpPcFQvTJ/e6LBI7irpIO2HfxUbpmYoHF+KzipzJpxxzJu7aJNWQ0xojJ/dzV2G5g==}
     engines: {node: '>= 20'}
+
+  husky@9.1.7:
+    resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   iconv-lite@0.7.2:
     resolution: {integrity: sha512-im9DjEDQ55s9fL4EYzOAv0yMqmMBSZp6G0VvFyTMPKWxiSBHUj9NW/qqLmXUwXrrM7AvqSlTCfvqRb0cM8yYqw==}
@@ -8007,6 +8022,8 @@ snapshots:
 
   globals@14.0.0: {}
 
+  globals@17.6.0: {}
+
   globalthis@1.0.4:
     dependencies:
       define-properties: 1.2.1
@@ -8146,6 +8163,8 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
+
+  husky@9.1.7: {}
 
   iconv-lite@0.7.2:
     dependencies:
