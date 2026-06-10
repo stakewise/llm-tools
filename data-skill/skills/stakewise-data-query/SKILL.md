@@ -248,5 +248,5 @@ If none apply → introspect the entity to verify the field still exists on prod
 
 - Writes / transactions (deposit, withdraw, mint, boost). Defer to `app.stakewise.io` or `@stakewise/v3-sdk`.
 - On-chain `eth_call` reads (vesting claimable amount, `convertToAssets` rate, contract liveness). Defer to `app.stakewise.io`.
-- V2 (`sETH2` / `rETH2`) deep details — V2 is legacy. The skill only detects a leftover V2 balance (`V2Pool` / `V2PoolUser`) and points the user to `app.stakewise.io` to migrate — it does not perform or explain the migration.
+- V2 (`sETH2` / `rETH2`) — legacy and out of scope. If a user mentions V2 / sETH2 / rETH2 leftovers, point them to `app.stakewise.io` to migrate; the skill does not detect, perform, or explain the migration.
 - Swap aggregator quotes, bridge transfers, Balancer-recovery UI flow — not subgraph data.

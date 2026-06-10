@@ -1,6 +1,6 @@
 # Network and misc entities
 
-Network-wide aggregates, sync state, access-control lists, address-type checker, ERC20 transfer log, V2 legacy entities, and Uniswap LP positions on StakeWise pairs. Use for "what's the network TVL?", "is the subgraph in sync?", "is the user whitelisted?", "show osETH transfers", "do I have V2 leftovers?".
+Network-wide aggregates, sync state, access-control lists (whitelist / blocklist), and the validator registry plus backend validator performance and OFAC screening. Use for "what's the network TVL?", "is the subgraph in sync?", "is the user whitelisted?", "show this vault's validator performance".
 
 ### Network
 
@@ -150,68 +150,6 @@ Always check `Vault.isPrivate` first to know whether the whitelist matters for t
 - `vault: Vault!`
 - `createdAt: BigInt!` — Unix seconds.
 
-### UserIsContract
-
-**Description.** Quick check whether an address is a wallet (externally-owned account) or a contract. Useful when explaining a position to a user who pasted a multisig address.
-
-**Query example.**
-
-```graphql
-{
-  userIsContracts(where: { id: "0xADDR" }) {
-    isContract
-  }
-}
-```
-
-**Response fields.**
-
-- `id: Bytes!` — address (lowercase).
-- `isContract: Boolean!`
-
-### TokenTransfer
-
-**Description.** ERC20 transfer log entries for osETH / osGNO / SWISE and related tokens. Use for "show my osETH movements" or "trace where this osETH came from".
-
-**Query example.**
-
-```graphql
-{
-  tokenTransfers(
-    where: {
-      tokenSymbol: "osETH",
-      from: "0xUSER"
-    },
-    orderBy: timestamp,
-    orderDirection: desc,
-    first: 50
-  ) {
-    hash
-    amount
-    from
-    to
-    timestamp
-    tokenSymbol
-  }
-}
-```
-
-**Arguments.**
-
-- `where.tokenSymbol` — `"osETH"`, `"osGNO"`, `"SWISE"`.
-- `where.from` / `where.to` — addresses (lowercase). Combine to find specific flows.
-- `where.timestamp_gte` / `_lte` — Unix seconds range.
-
-**Response fields.**
-
-- `id: ID!` — `<tx-hash>-<log-index>`.
-- `hash: Bytes!` — transaction hash.
-- `amount: BigInt!` — transferred amount (wei).
-- `tokenSymbol: String!`
-- `from: Bytes!` — sender (lowercase).
-- `to: Bytes!` — recipient (lowercase).
-- `timestamp: BigInt!` — Unix seconds.
-
 ### NetworkValidator
 
 **Description.** Registry of validator public keys. Subgraph only stores the key — for APR, income, and status of validators of a specific vault, use **backend GraphQL** `vaultValidators(...)` (see Endpoints above).
@@ -287,78 +225,3 @@ The argument is direct (`vaultAddress`, lowercase), not a `where`.
 ```
 
 Returns `[String!]` (~90 addresses). **The list is checksummed (mixed-case)** — lowercase both sides before comparing to a user address: `ofac.map(a => a.toLowerCase()).includes(user.toLowerCase())`.
-
-### V2Pool and V2PoolUser (legacy)
-
-**Description.** V2 entities kept for migration support only. Skip unless the user explicitly asks about V2 / sETH2 / rETH2 leftovers.
-
-**Query example.**
-
-```graphql
-{
-  v2Pools(first: 1) {
-    apy
-    totalAssets
-    rate
-    migrated
-    isDisconnected
-  }
-  v2PoolUsers(where: { id: "0xUSER" }) {
-    balance
-  }
-}
-```
-
-**Response fields.**
-
-`V2Pool` singleton:
-- `apy`, `totalAssets`, `rate`, `migrated: Boolean`, `isDisconnected: Boolean`.
-
-`V2PoolUser`:
-- `id: ID!` — user address (lowercase).
-- `balance: BigInt!` — V2 pool token balance (wei).
-
-If `V2Pool.isDisconnected: true`, the pool is dead and not earning. Surface as "you have a remaining V2 balance; consider migrating via `app.stakewise.io`".
-
-### UniswapPool and UniswapPosition
-
-**Description.** LP positions on Uniswap V3 pools that pair a StakeWise token (osETH/ETH, SWISE/ETH, etc.). Use when the user asks about their LP positions on these pairs.
-
-**Query example.**
-
-```graphql
-{
-  uniswapPositions(where: { owner: "0xUSER" }) {
-    id
-    pool {
-      id
-      token0
-      token1
-      feeTier
-    }
-    amount0
-    amount1
-    liquidity
-    tickLower
-    tickUpper
-  }
-}
-```
-
-**Response fields.**
-
-`UniswapPool`:
-- `id: ID!` — pool contract address (lowercase).
-- `token0: Bytes!`, `token1: Bytes!` — pair tokens.
-- `feeTier: BigInt!` — 500 (0.05%), 3000 (0.3%), or 10000 (1%).
-- `sqrtPrice: BigInt!` — current √price (Q64.96).
-- `tick: Int` — current tick.
-- `positions: [UniswapPosition!]!` — derived.
-
-`UniswapPosition`:
-- `id: ID!` — NFT tokenId.
-- `owner: Bytes!`
-- `pool: UniswapPool!`
-- `amount0: BigInt!`, `amount1: BigInt!` — token amounts (wei).
-- `tickLower: Int!`, `tickUpper: Int!` — range bounds.
-- `liquidity: BigInt!`

@@ -1,6 +1,6 @@
 # Minting and rates entities
 
-osToken-related entities: who holds osETH/osGNO, per-vault minting risk parameters, the global osToken stats singleton, osToken redemption queue, and current + historical exchange rates between assets and USD/EUR/etc. Use for "how much osETH can I mint here?", "what's the osToken supply?", "what's the osETH→USD rate?", "what's my redemption status?", "show ETH→USD rate over 30 days".
+osToken-related entities: who holds osETH/osGNO, per-vault minting risk parameters, the global osToken stats singleton, osToken redemption queue, and current exchange rates between assets and USD/EUR/etc. Use for "how much osETH can I mint here?", "what's the osToken supply?", "what's the osETH→USD rate?", "what's my redemption status?".
 
 ### OsTokenHolder
 
@@ -176,63 +176,3 @@ To convert `balance` (osToken shares) to assets, multiply by `ExchangeRate.osTok
 **osToken → USD.** Compose both rates: `osTokenUSD = (osTokenShares / 1e18) × osTokenAssetsRate × assetsUsdRate`. Step 1 (`× osTokenAssetsRate`) converts shares to the native asset (ETH/GNO); step 2 (`× assetsUsdRate`) converts that to USD. For osGNO use Mainnet's `osTokenAssetsRate` (see Gnosis fallback).
 
 **Gnosis fallback.** On Gnosis the fiat (`usdTo*Rate`) and `osTokenAssetsRate` fields are unreliable for USD math — use the Mainnet values instead. Full rule and the osGNO USD formula live in Units and gotchas → Gnosis quirks (single source of truth).
-
-### ExchangeRateSnapshot
-
-**Description.** Periodic (~hourly) snapshot of all rates. Use for fine-grained time-series of any rate field.
-
-**Query example.**
-
-```graphql
-{
-  exchangeRateSnapshots(
-    where: { timestamp_gte: "<(nowSec - 7 * 86400) * 1000000>" },
-    orderBy: timestamp,
-    first: 200
-  ) {
-    timestamp
-    assetsUsdRate
-    osTokenAssetsRate
-  }
-}
-```
-
-**Arguments.**
-
-- `where.timestamp_gte` / `_lte` — microseconds since epoch.
-- `orderBy: timestamp`.
-
-**Response fields.** Same field shape as `ExchangeRate`, plus `timestamp: Timestamp!` in microseconds.
-
-### ExchangeRateStats (aggregation)
-
-**Description.** Daily aggregation of `ExchangeRateSnapshot` via the subgraph `@aggregation` mechanism. Use for "show last 30 days of ETH→USD" style queries when hourly precision isn't needed.
-
-**Query example.** Use the `_collection` (lowercase first letter) query form:
-
-```graphql
-{
-  exchangeRateStats_collection(
-    interval: day,
-    first: 30,
-    where: { timestamp_gte: "<(nowSec - 30 * 86400) * 1000000>" }
-  ) {
-    timestamp
-    assetsUsdRate
-    osTokenAssetsRate
-    swiseUsdRate
-    usdToEurRate
-    usdToGbpRate
-    usdToCnyRate
-    usdToJpyRate
-  }
-}
-```
-
-**Arguments.**
-
-- `interval: day` — aggregation bucket.
-- `first` — limit.
-- `where.timestamp_gte` / `_lte` — microseconds.
-
-**Response fields.** Same shape as `ExchangeRate`, with `timestamp` at the end of each daily bucket (microseconds).

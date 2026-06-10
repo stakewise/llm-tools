@@ -248,7 +248,7 @@ If none apply → introspect the entity to verify the field still exists on prod
 
 - Writes / transactions (deposit, withdraw, mint, boost). Defer to `app.stakewise.io` or `@stakewise/v3-sdk`.
 - On-chain `eth_call` reads (vesting claimable amount, `convertToAssets` rate, contract liveness). Defer to `app.stakewise.io`.
-- V2 (`sETH2` / `rETH2`) deep details — V2 is legacy. The skill only detects a leftover V2 balance (`V2Pool` / `V2PoolUser`) and points the user to `app.stakewise.io` to migrate — it does not perform or explain the migration.
+- V2 (`sETH2` / `rETH2`) — legacy and out of scope. If a user mentions V2 / sETH2 / rETH2 leftovers, point them to `app.stakewise.io` to migrate; the skill does not detect, perform, or explain the migration.
 - Swap aggregator quotes, bridge transfers, Balancer-recovery UI flow — not subgraph data.
 
 ---
@@ -732,7 +732,7 @@ The osToken LTV here is one of two LTVs in StakeWise; the other (Aave borrow LTV
 
 ## Minting and rates entities
 
-osToken-related entities: who holds osETH/osGNO, per-vault minting risk parameters, the global osToken stats singleton, osToken redemption queue, and current + historical exchange rates between assets and USD/EUR/etc. Use for "how much osETH can I mint here?", "what's the osToken supply?", "what's the osETH→USD rate?", "what's my redemption status?", "show ETH→USD rate over 30 days".
+osToken-related entities: who holds osETH/osGNO, per-vault minting risk parameters, the global osToken stats singleton, osToken redemption queue, and current exchange rates between assets and USD/EUR/etc. Use for "how much osETH can I mint here?", "what's the osToken supply?", "what's the osETH→USD rate?", "what's my redemption status?".
 
 ### OsTokenHolder
 
@@ -908,66 +908,6 @@ To convert `balance` (osToken shares) to assets, multiply by `ExchangeRate.osTok
 **osToken → USD.** Compose both rates: `osTokenUSD = (osTokenShares / 1e18) × osTokenAssetsRate × assetsUsdRate`. Step 1 (`× osTokenAssetsRate`) converts shares to the native asset (ETH/GNO); step 2 (`× assetsUsdRate`) converts that to USD. For osGNO use Mainnet's `osTokenAssetsRate` (see Gnosis fallback).
 
 **Gnosis fallback.** On Gnosis the fiat (`usdTo*Rate`) and `osTokenAssetsRate` fields are unreliable for USD math — use the Mainnet values instead. Full rule and the osGNO USD formula live in Units and gotchas → Gnosis quirks (single source of truth).
-
-### ExchangeRateSnapshot
-
-**Description.** Periodic (~hourly) snapshot of all rates. Use for fine-grained time-series of any rate field.
-
-**Query example.**
-
-```graphql
-{
-  exchangeRateSnapshots(
-    where: { timestamp_gte: "<(nowSec - 7 * 86400) * 1000000>" },
-    orderBy: timestamp,
-    first: 200
-  ) {
-    timestamp
-    assetsUsdRate
-    osTokenAssetsRate
-  }
-}
-```
-
-**Arguments.**
-
-- `where.timestamp_gte` / `_lte` — microseconds since epoch.
-- `orderBy: timestamp`.
-
-**Response fields.** Same field shape as `ExchangeRate`, plus `timestamp: Timestamp!` in microseconds.
-
-### ExchangeRateStats (aggregation)
-
-**Description.** Daily aggregation of `ExchangeRateSnapshot` via the subgraph `@aggregation` mechanism. Use for "show last 30 days of ETH→USD" style queries when hourly precision isn't needed.
-
-**Query example.** Use the `_collection` (lowercase first letter) query form:
-
-```graphql
-{
-  exchangeRateStats_collection(
-    interval: day,
-    first: 30,
-    where: { timestamp_gte: "<(nowSec - 30 * 86400) * 1000000>" }
-  ) {
-    timestamp
-    assetsUsdRate
-    osTokenAssetsRate
-    swiseUsdRate
-    usdToEurRate
-    usdToGbpRate
-    usdToCnyRate
-    usdToJpyRate
-  }
-}
-```
-
-**Arguments.**
-
-- `interval: day` — aggregation bucket.
-- `first` — limit.
-- `where.timestamp_gte` / `_lte` — microseconds.
-
-**Response fields.** Same shape as `ExchangeRate`, with `timestamp` at the end of each daily bucket (microseconds).
 
 ## Boost entities
 
@@ -1391,7 +1331,7 @@ Do not estimate claimable yourself with `total × (now − start) / (end − sta
 
 ## Network and misc entities
 
-Network-wide aggregates, sync state, access-control lists, address-type checker, ERC20 transfer log, V2 legacy entities, and Uniswap LP positions on StakeWise pairs. Use for "what's the network TVL?", "is the subgraph in sync?", "is the user whitelisted?", "show osETH transfers", "do I have V2 leftovers?".
+Network-wide aggregates, sync state, access-control lists (whitelist / blocklist), and the validator registry plus backend validator performance and OFAC screening. Use for "what's the network TVL?", "is the subgraph in sync?", "is the user whitelisted?", "show this vault's validator performance".
 
 ### Network
 
@@ -1541,68 +1481,6 @@ Always check `Vault.isPrivate` first to know whether the whitelist matters for t
 - `vault: Vault!`
 - `createdAt: BigInt!` — Unix seconds.
 
-### UserIsContract
-
-**Description.** Quick check whether an address is a wallet (externally-owned account) or a contract. Useful when explaining a position to a user who pasted a multisig address.
-
-**Query example.**
-
-```graphql
-{
-  userIsContracts(where: { id: "0xADDR" }) {
-    isContract
-  }
-}
-```
-
-**Response fields.**
-
-- `id: Bytes!` — address (lowercase).
-- `isContract: Boolean!`
-
-### TokenTransfer
-
-**Description.** ERC20 transfer log entries for osETH / osGNO / SWISE and related tokens. Use for "show my osETH movements" or "trace where this osETH came from".
-
-**Query example.**
-
-```graphql
-{
-  tokenTransfers(
-    where: {
-      tokenSymbol: "osETH",
-      from: "0xUSER"
-    },
-    orderBy: timestamp,
-    orderDirection: desc,
-    first: 50
-  ) {
-    hash
-    amount
-    from
-    to
-    timestamp
-    tokenSymbol
-  }
-}
-```
-
-**Arguments.**
-
-- `where.tokenSymbol` — `"osETH"`, `"osGNO"`, `"SWISE"`.
-- `where.from` / `where.to` — addresses (lowercase). Combine to find specific flows.
-- `where.timestamp_gte` / `_lte` — Unix seconds range.
-
-**Response fields.**
-
-- `id: ID!` — `<tx-hash>-<log-index>`.
-- `hash: Bytes!` — transaction hash.
-- `amount: BigInt!` — transferred amount (wei).
-- `tokenSymbol: String!`
-- `from: Bytes!` — sender (lowercase).
-- `to: Bytes!` — recipient (lowercase).
-- `timestamp: BigInt!` — Unix seconds.
-
 ### NetworkValidator
 
 **Description.** Registry of validator public keys. Subgraph only stores the key — for APR, income, and status of validators of a specific vault, use **backend GraphQL** `vaultValidators(...)` (see Endpoints above).
@@ -1679,81 +1557,6 @@ The argument is direct (`vaultAddress`, lowercase), not a `where`.
 
 Returns `[String!]` (~90 addresses). **The list is checksummed (mixed-case)** — lowercase both sides before comparing to a user address: `ofac.map(a => a.toLowerCase()).includes(user.toLowerCase())`.
 
-### V2Pool and V2PoolUser (legacy)
-
-**Description.** V2 entities kept for migration support only. Skip unless the user explicitly asks about V2 / sETH2 / rETH2 leftovers.
-
-**Query example.**
-
-```graphql
-{
-  v2Pools(first: 1) {
-    apy
-    totalAssets
-    rate
-    migrated
-    isDisconnected
-  }
-  v2PoolUsers(where: { id: "0xUSER" }) {
-    balance
-  }
-}
-```
-
-**Response fields.**
-
-`V2Pool` singleton:
-- `apy`, `totalAssets`, `rate`, `migrated: Boolean`, `isDisconnected: Boolean`.
-
-`V2PoolUser`:
-- `id: ID!` — user address (lowercase).
-- `balance: BigInt!` — V2 pool token balance (wei).
-
-If `V2Pool.isDisconnected: true`, the pool is dead and not earning. Surface as "you have a remaining V2 balance; consider migrating via `app.stakewise.io`".
-
-### UniswapPool and UniswapPosition
-
-**Description.** LP positions on Uniswap V3 pools that pair a StakeWise token (osETH/ETH, SWISE/ETH, etc.). Use when the user asks about their LP positions on these pairs.
-
-**Query example.**
-
-```graphql
-{
-  uniswapPositions(where: { owner: "0xUSER" }) {
-    id
-    pool {
-      id
-      token0
-      token1
-      feeTier
-    }
-    amount0
-    amount1
-    liquidity
-    tickLower
-    tickUpper
-  }
-}
-```
-
-**Response fields.**
-
-`UniswapPool`:
-- `id: ID!` — pool contract address (lowercase).
-- `token0: Bytes!`, `token1: Bytes!` — pair tokens.
-- `feeTier: BigInt!` — 500 (0.05%), 3000 (0.3%), or 10000 (1%).
-- `sqrtPrice: BigInt!` — current √price (Q64.96).
-- `tick: Int` — current tick.
-- `positions: [UniswapPosition!]!` — derived.
-
-`UniswapPosition`:
-- `id: ID!` — NFT tokenId.
-- `owner: Bytes!`
-- `pool: UniswapPool!`
-- `amount0: BigInt!`, `amount1: BigInt!` — token amounts (wei).
-- `tickLower: Int!`, `tickUpper: Int!` — range bounds.
-- `liquidity: BigInt!`
-
 ## Units and gotchas
 
 A one-screen cheat sheet for the data-query skill. Scan this **before** doing math on subgraph data — most "wrong number" mistakes start here.
@@ -1768,11 +1571,11 @@ A one-screen cheat sheet for the data-query skill. Scan this **before** doing ma
 | `feePercent` | **basis points** | `1000` = 10%; `100` = 1% | Divide by 100. Range 0–10000. |
 | `OsTokenConfig.ltvPercent`, `liqThresholdPercent`, `leverageMaxMintLtvPercent` | **percent × 1e16** | `"900000000000000000"` = 90% | Divide by 1e16. NOT basis points. |
 | `Aave.leverageMaxBorrowLtvPercent` | **18-decimal fixed point** | `"929999998000000000"` ÷ 1e18 = 0.93 = 93% | Divide by 1e18 → 0..1 ratio. Different scale from `feePercent` and `OsTokenConfig.*Percent`. |
-| `rate` (Vault, V2Pool) | wei per 1e18 shares | `"1050000000000000000"` = 1.05 assets per share | `userAssets = userShares × rate / 1e18`. |
+| `rate` (Vault) | wei per 1e18 shares | `"1050000000000000000"` = 1.05 assets per share | `userAssets = userShares × rate / 1e18`. |
 | `ExchangeRate.osTokenAssetsRate` | decimal string | `"0.96"` = 1 osETH share is worth 0.96 ETH | Multiply osToken share count by rate. |
 | `ExchangeRate.assetsUsdRate`, `*UsdRate` | decimal string | `"1850.5"` = $1850.50 per 1 ETH (GNO on Gnosis) | Multiply asset amount (in human units after wei division) by rate. |
 | `Checkpoint.timestamp`, `ExitRequest.timestamp`, `ExitRequest.withdrawalTimestamp`, `AllocatorAction.createdAt`, `Vault.createdAt`/`rewardsTimestamp`/`lastFeeUpdateTimestamp`, `PeriodicDistribution.startTimestamp`/`endTimestamp` | **Unix seconds** | `1778570771` | Compare with `Math.floor(Date.now() / 1000)`. |
-| `VaultSnapshot.timestamp`, `AllocatorSnapshot.timestamp`, `ExchangeRateSnapshot.timestamp`, `ExchangeRateStats.timestamp` | **microseconds** (Unix seconds × 1e6) | `1778457600000000` = 2026-05-11 00:00:00 UTC | Snapshots are at exact UTC 00:00 daily. For range filters: `timestamp_gte: (Math.floor(Date.now()/1000) - N*86400) * 1e6`. |
+| `VaultSnapshot.timestamp`, `AllocatorSnapshot.timestamp` | **microseconds** (Unix seconds × 1e6) | `1778457600000000` = 2026-05-11 00:00:00 UTC | Snapshots are at exact UTC 00:00 daily. For range filters: `timestamp_gte: (Math.floor(Date.now()/1000) - N*86400) * 1e6`. |
 | `chainId` | integer | `1`, `100`, `560048` | Plain JS number. |
 
 ### BigInt is a string in JSON

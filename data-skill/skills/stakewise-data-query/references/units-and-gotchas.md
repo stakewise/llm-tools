@@ -12,11 +12,11 @@ A one-screen cheat sheet for the data-query skill. Scan this **before** doing ma
 | `feePercent` | **basis points** | `1000` = 10%; `100` = 1% | Divide by 100. Range 0–10000. |
 | `OsTokenConfig.ltvPercent`, `liqThresholdPercent`, `leverageMaxMintLtvPercent` | **percent × 1e16** | `"900000000000000000"` = 90% | Divide by 1e16. NOT basis points. |
 | `Aave.leverageMaxBorrowLtvPercent` | **18-decimal fixed point** | `"929999998000000000"` ÷ 1e18 = 0.93 = 93% | Divide by 1e18 → 0..1 ratio. Different scale from `feePercent` and `OsTokenConfig.*Percent`. |
-| `rate` (Vault, V2Pool) | wei per 1e18 shares | `"1050000000000000000"` = 1.05 assets per share | `userAssets = userShares × rate / 1e18`. |
+| `rate` (Vault) | wei per 1e18 shares | `"1050000000000000000"` = 1.05 assets per share | `userAssets = userShares × rate / 1e18`. |
 | `ExchangeRate.osTokenAssetsRate` | decimal string | `"0.96"` = 1 osETH share is worth 0.96 ETH | Multiply osToken share count by rate. |
 | `ExchangeRate.assetsUsdRate`, `*UsdRate` | decimal string | `"1850.5"` = $1850.50 per 1 ETH (GNO on Gnosis) | Multiply asset amount (in human units after wei division) by rate. |
 | `Checkpoint.timestamp`, `ExitRequest.timestamp`, `ExitRequest.withdrawalTimestamp`, `AllocatorAction.createdAt`, `Vault.createdAt`/`rewardsTimestamp`/`lastFeeUpdateTimestamp`, `PeriodicDistribution.startTimestamp`/`endTimestamp` | **Unix seconds** | `1778570771` | Compare with `Math.floor(Date.now() / 1000)`. |
-| `VaultSnapshot.timestamp`, `AllocatorSnapshot.timestamp`, `ExchangeRateSnapshot.timestamp`, `ExchangeRateStats.timestamp` | **microseconds** (Unix seconds × 1e6) | `1778457600000000` = 2026-05-11 00:00:00 UTC | Snapshots are at exact UTC 00:00 daily. For range filters: `timestamp_gte: (Math.floor(Date.now()/1000) - N*86400) * 1e6`. |
+| `VaultSnapshot.timestamp`, `AllocatorSnapshot.timestamp` | **microseconds** (Unix seconds × 1e6) | `1778457600000000` = 2026-05-11 00:00:00 UTC | Snapshots are at exact UTC 00:00 daily. For range filters: `timestamp_gte: (Math.floor(Date.now()/1000) - N*86400) * 1e6`. |
 | `chainId` | integer | `1`, `100`, `560048` | Plain JS number. |
 
 ### BigInt is a string in JSON
