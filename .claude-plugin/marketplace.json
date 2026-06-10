@@ -4,7 +4,9 @@
     "name": "Stakewise Team",
     "email": "tsudmi@stakewise.io"
   },
-  "description": "StakeWise tools for AI assistants — MCP server (npm) and standalone data-query skill.",
+  "metadata": {
+    "description": "StakeWise tools for AI assistants — MCP server (npm) and standalone data-query skill."
+  },
   "plugins": [
     {
       "name": "stakewise-data-query",
